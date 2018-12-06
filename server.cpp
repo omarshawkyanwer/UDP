@@ -8,23 +8,18 @@ using boost::asio::ip::udp;
 using boost::asio::deadline_timer;
 
 
-class server
-{
+class server {
 public:
-    server(short port)
-    : socket_(io_service_,
-    udp::endpoint(udp::v4(), port)),
-    timer(io_service_)
-    {
+    server(const udp::endpoint& listen_endpoint) :
+            socket_(io_service_, listen_endpoint),
+            timer(io_service_) {
         timeout = boost::posix_time::seconds(15);
         timer.expires_from_now(boost::posix_time::pos_infin);
         check_timeout();
     }
     
     std::size_t receive(const boost::asio::mutable_buffer& buffer,
-boost::system::error_code& ec)
-    {
-       
+                        boost::system::error_code& ec) {
         timer.expires_from_now(timeout);
 
         ec = boost::asio::error::would_block;
@@ -38,26 +33,21 @@ boost::system::error_code& ec)
         
         return length;
     }
-    static void handle_receive(
-                               const boost::system::error_code& ec, std::size_t length,
-                               boost::system::error_code* out_ec, std::size_t* out_length)
-    {
-        *out_ec = ec;
-        *out_length = length;
-    }
-   
+
 private:
-    void check_timeout()
-    {
-        
-        if (timer.expires_at() <= deadline_timer::traits_type::now())
-        {
+    void check_timeout() {
+        if (timer.expires_at() <= deadline_timer::traits_type::now()) {
            // socket_.cancel();
-            std::cout<<"The timeout has been occurred"<<std::endl;
+            std::cout << "The timeout has been occurred" << std::endl;
             timer.expires_at(boost::posix_time::pos_infin);
         }
-         timer.async_wait(boost::bind(&server::check_timeout, this));
-        
+        timer.async_wait(boost::bind(&server::check_timeout, this));
+    }
+
+    static void handle_receive(const boost::system::error_code& ec, std::size_t length,
+                               boost::system::error_code* out_ec, std::size_t* out_length) {
+        *out_ec = ec;
+        *out_length = length;
     }
     
 private:
@@ -66,31 +56,21 @@ private:
     boost::posix_time::time_duration timeout;
     boost::asio::deadline_timer timer;
     boost::asio::io_service io_service_;
-    
-    
 };
 
-void work_for_io_service(const boost::system::error_code& /*e*/)
-{
-    std::cout<<"omar shawky"<<std::endl;
-}
+int main(int argc, char* argv[]) {
+    try {
+        udp::endpoint listen_endpoint(udp::v4() , 8000);
+        server s(listen_endpoint);
 
-int main(int argc, char* argv[])
-{
-    try
-    {
-        char* port = "8000";
-        boost::asio::io_service io_service;
-        server s(std::atoi(port));
         char data[1024];
         boost::system::error_code ec;
-        std::size_t n = s.receive(boost::asio::buffer(data),ec);
+        std::size_t n = s.receive(boost::asio::buffer(data), ec);
+
         std::cout.write(data, n);
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception& e) {
         std::cerr << "Exception: " << e.what() << "\n";
     }
-    
     return 0;
 }
