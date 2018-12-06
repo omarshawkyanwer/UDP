@@ -5,7 +5,7 @@
 
 using boost::asio::deadline_timer;
 
-tcp_socket::tcp_socket(udp::endpoint client_endpoint) :
+tcp_socket::tcp_socket(udp::endpoint endpoint) :
         socket_(io_service_, endpoint),
         timer_(io_service_) {
     tcp_socket::endpoint_ = endpoint;
