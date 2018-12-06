@@ -4,7 +4,7 @@ project(UDP)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS -pthread)
 SET(CMAKE_BUILD_TYPE Debug)
-set(SERVER_SOURCE_FILES server.cpp types.h types.cpp)
+set(SERVER_SOURCE_FILES server.cpp types.h types.cpp tcp_socket.cpp tcp_socket.h)
 set(CLIENT_SOURCE_FILES client.cpp types.h types.cpp)
 
 find_package(Boost COMPONENTS system filesystem thread REQUIRED)

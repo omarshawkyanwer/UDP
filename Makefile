@@ -190,6 +190,33 @@ server.cpp.s:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/server.cpp.s
 .PHONY : server.cpp.s
 
+tcp_socket.o: tcp_socket.cpp.o
+
+.PHONY : tcp_socket.o
+
+# target to build an object file
+tcp_socket.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tcp_socket.cpp.o
+.PHONY : tcp_socket.cpp.o
+
+tcp_socket.i: tcp_socket.cpp.i
+
+.PHONY : tcp_socket.i
+
+# target to preprocess a source file
+tcp_socket.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tcp_socket.cpp.i
+.PHONY : tcp_socket.cpp.i
+
+tcp_socket.s: tcp_socket.cpp.s
+
+.PHONY : tcp_socket.s
+
+# target to generate assembly for a file
+tcp_socket.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tcp_socket.cpp.s
+.PHONY : tcp_socket.cpp.s
+
 types.o: types.cpp.o
 
 .PHONY : types.o
@@ -236,6 +263,9 @@ help:
 	@echo "... server.o"
 	@echo "... server.i"
 	@echo "... server.s"
+	@echo "... tcp_socket.o"
+	@echo "... tcp_socket.i"
+	@echo "... tcp_socket.s"
 	@echo "... types.o"
 	@echo "... types.i"
 	@echo "... types.s"

@@ -9,6 +9,20 @@ using boost::asio::ip::udp;
 
 enum { max_length = 1024 };
 
+static tcp_packet create_pkt() {
+    tcp_packet pkt;
+    pkt.src_port = 8080;
+    pkt.dest_port = 2000;
+    pkt.seq_no = 1000;
+    pkt.ack_no = 404;
+    pkt.flags = 2020;
+    pkt.urg_data_ptr = 1;
+    pkt.checksum = 2000;
+    pkt.recvw = 120;
+    strcpy(pkt.data, "TESTING");
+    return pkt;
+}
+
 int main(int argc, char* argv[])
 {
     try
@@ -19,7 +33,19 @@ int main(int argc, char* argv[])
         udp::socket s(io_service, sender_endpoint);
 
         boost::system::error_code ec;
-        tcp_packet pkt;
+        tcp_packet pkt = create_pkt();
+
+        /* Sends received packet */
+        while (true) {
+            std::cout << "Sending back packet... \n";
+            s.send_to(boost::asio::buffer(&pkt, sizeof(pkt)), endpoint, 0, ec);
+
+            if (ec) {
+                std::cout << "Sending error: " << ec.message() << std::endl;
+                continue;
+            }
+            break;
+        }
 
         /* Receives packet from server */
         while (true) {
@@ -34,19 +60,6 @@ int main(int argc, char* argv[])
         }
 
         print_pkt(pkt);
-
-        /** Sends back received packet */
-        while (true) {
-            std::cout << "Sending back packet... \n";
-            s.send_to(boost::asio::buffer(&pkt, sizeof(pkt)), endpoint, 0, ec);
-
-            if (ec) {
-                std::cout << "Sending error: " << ec.message() << std::endl;
-                continue;
-            }
-            break;
-        }
-
     }
     catch (std::exception& e)
     {
