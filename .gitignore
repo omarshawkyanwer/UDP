@@ -40,3 +40,6 @@ cmake_install.cmake
 vgcore*
 /CMakeFiles
 .vscode/
+*cbp
+client
+server

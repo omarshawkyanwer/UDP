@@ -1,10 +1,11 @@
-cmake_minimum_required(VERSION 3.8.2)
-project(tcp)
+cmake_minimum_required(VERSION 3.13)
+project(UDP)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS -pthread)
-set(SERVER_SOURCE_FILES server.cpp)
-set(CLIENT_SOURCE_FILES client.cpp)
+SET(CMAKE_BUILD_TYPE Debug)
+set(SERVER_SOURCE_FILES server.cpp types.h types.cpp)
+set(CLIENT_SOURCE_FILES client.cpp types.h types.cpp)
 
 find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 if (Boost_FOUND)
