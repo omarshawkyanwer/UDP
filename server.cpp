@@ -12,12 +12,14 @@ using boost::asio::deadline_timer;
 class server {
 public:
     explicit server(const udp::endpoint &listen_endpoint) :
-             socket_(io_service_, listen_endpoint) { }
+             socket_(io_service_, listen_endpoint) {
+        server::endpoint_ = listen_endpoint;
+    }
 
     void start() {
         while (true) {
             tcp_packet pkt_recv{};
-            socket_.receive(boost::asio::buffer(&pkt_recv, sizeof(pkt_recv)));
+            server::socket_.receive(boost::asio::buffer(&pkt_recv, sizeof(pkt_recv)));
 
             print_pkt(pkt_recv);
             handle_packet(pkt_recv);
@@ -28,19 +30,20 @@ public:
 private:
     void handle_packet(tcp_packet &pkt) {
         std::string key = std::to_string(pkt.src_port);
-        socket_map_mtx.lock();
+        server::socket_map_mtx.lock();
         if (server::open_sockets.find(key) == server::open_sockets.end()) {
             /* Create a new tcp_socket and put it in map */
             udp::endpoint client_endpoint(udp::v4(), pkt.src_port);
-            auto *new_socket = new tcp_socket(client_endpoint, &this->socket_);
+            auto *new_socket = new tcp_socket(endpoint_, client_endpoint, &this->socket_);
             server::open_sockets.insert(std::pair<std::string, tcp_socket*>(key, new_socket));
         }
         /* Forward packet to the open socket after */
-        server::open_sockets[key]->handle(pkt, server::timeout);
-        socket_map_mtx.unlock();
+        server::open_sockets[key]->handle_received(pkt, server::timeout);
+        server::socket_map_mtx.unlock();
     }
 
 private:
+    udp::endpoint endpoint_;
     boost::asio::io_service io_service_;
     udp::socket socket_;
 

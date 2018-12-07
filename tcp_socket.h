@@ -8,7 +8,8 @@
 using namespace boost::asio::ip;
 
 class tcp_socket {
-    enum state {
+    enum connection_state {
+        INITIALIZED,
         LISTENING,
         SYN_RECVD,
         SYN_SENT,
@@ -16,15 +17,27 @@ class tcp_socket {
     };
 
 public:
-    tcp_socket(const udp::endpoint &, udp::socket *);
-    void handle(tcp_packet &, long);
+    tcp_socket(const udp::endpoint &, const udp::endpoint &, udp::socket *);
+    void listen();
+    void open();
+    void handle_received(tcp_packet &pkt, long timeout_msec);
 
 private:
     void init();
+    tcp_packet make_pkt();
+
+    /* State handlers */
+    void state_transition_callback(const boost::system::error_code &,
+            std::size_t, enum connection_state, long);
+    void handle_on_listen(tcp_packet &, long);
+    void handle_on_syn_recvd(tcp_packet &, long);
+    void handle_on_established(tcp_packet &, long);
+
     void check_timeout();
     void send_callback(const boost::system::error_code &, std::size_t, long);
 
 private:
+    udp::endpoint listening_endpoint_;
     udp::endpoint endpoint_;
     udp::socket *socket_;
     boost::asio::io_service::strand strand_;
@@ -33,6 +46,6 @@ private:
     tcp_packet last_pkt;
     uint32_t expected_ack_no;
     uint32_t cur_seq_no;
-    state cur_state;
+    connection_state cur_state;
 };
 #endif //UDP_WORKER_THREAD_H
