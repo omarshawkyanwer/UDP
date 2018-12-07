@@ -11,100 +11,50 @@ using boost::asio::deadline_timer;
 
 class server {
 public:
-    explicit server(const udp::endpoint& listen_endpoint) :
-                socket_(io_service_, listen_endpoint),
-                timer_(io_service_) {
-        timeout = boost::posix_time::seconds(5);
-        timer_.expires_from_now(boost::posix_time::pos_infin);
-        check_timeout();
-    }
+    explicit server(const udp::endpoint &listen_endpoint) :
+             socket_(io_service_, listen_endpoint) { }
 
-    std::size_t send(const tcp_packet &pkt, boost::system::error_code &ec) {
-        return socket_.send(boost::asio::buffer(&pkt, sizeof(pkt)), 0, ec);
-    }
+    void start() {
+        while (true) {
+            tcp_packet pkt_recv{};
+            socket_.receive(boost::asio::buffer(&pkt_recv, sizeof(pkt_recv)));
 
-    std::size_t send(const tcp_packet &pkt, udp::endpoint &client_endpoint,
-                     boost::system::error_code &ec) {
-        return socket_.send_to(boost::asio::buffer(&pkt, sizeof(pkt)),
-                client_endpoint, 0, ec);
-    }
-
-    std::size_t receive(tcp_packet &pkt, boost::system::error_code &ec) {
-        socket_.receive(boost::asio::buffer(&pkt, sizeof(pkt)));
-        return 520;
-    }
-    std::size_t receive(tcp_packet &pkt, udp::endpoint &client_endpoint,
-                        boost::system::error_code &ec) {
-        timer_.expires_from_now(timeout);
-
-        ec = boost::asio::error::would_block;
-        std::size_t length = 0;
-        socket_.async_receive_from(boost::asio::buffer(&pkt, sizeof(pkt)), client_endpoint,
-                              boost::bind(&server::handle_receive, _1, _2, &ec, &length));
-
-        do io_service_.run_one(); while (ec == boost::asio::error::would_block);
-
-        return length;
-    }
-
-    tcp_socket *accept(const udp::endpoint &endpoint) {
-        tcp_socket *tcp_s = new tcp_socket(endpoint, &this->socket_);
-        return tcp_s;
+            print_pkt(pkt_recv);
+            handle_packet(pkt_recv);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
     }
 
 private:
-    void check_timeout() {
-        if (timer_.expires_at() <= deadline_timer::traits_type::now()) {
-           // socket_.cancel();
-            std::cout << "The timeout has been occurred" << std::endl;
-            timer_.expires_at(boost::posix_time::pos_infin);
+    void handle_packet(tcp_packet &pkt) {
+        std::string key = std::to_string(pkt.src_port);
+        socket_map_mtx.lock();
+        if (server::open_sockets.find(key) == server::open_sockets.end()) {
+            /* Create a new tcp_socket and put it in map */
+            udp::endpoint client_endpoint(udp::v4(), pkt.src_port);
+            auto *new_socket = new tcp_socket(client_endpoint, &this->socket_);
+            server::open_sockets.insert(std::pair<std::string, tcp_socket*>(key, new_socket));
         }
-        timer_.async_wait(boost::bind(&server::check_timeout, this));
+        /* Forward packet to the open socket after */
+        server::open_sockets[key]->handle(pkt, server::timeout);
+        socket_map_mtx.unlock();
     }
 
-    static void handle_receive(const boost::system::error_code& ec, std::size_t length,
-                               boost::system::error_code* out_ec, std::size_t* out_length) {
-        *out_ec = ec;
-        *out_length = length;
-    }
-    
 private:
     boost::asio::io_service io_service_;
     udp::socket socket_;
-    boost::asio::deadline_timer timer_;
-    boost::posix_time::time_duration timeout;
 
-    uint32_t cur_seq_no;
-    uint32_t expected_ack_no;
+    std::map<std::string, tcp_socket *> open_sockets;
+    std::mutex socket_map_mtx;
+
+    long timeout = 5000l;
 };
-
-static tcp_packet create_pkt() {
-    tcp_packet pkt;
-    pkt.src_port = 8080;
-    pkt.dest_port = 2000;
-    pkt.seq_no = 1000;
-    pkt.ack_no = 404;
-    pkt.flags = 2020;
-    pkt.urg_data_ptr = 1;
-    pkt.checksum = 2000;
-    pkt.recvw = 120;
-    strcpy(pkt.data, "TESTING");
-    return pkt;
-}
 
 int main(int argc, char* argv[]) {
     udp::endpoint listen_endpoint(udp::v4(), 8000);
-    udp::endpoint client_endpoint(udp::v4(), 8080);
     server s(listen_endpoint);
 
-    boost::system::error_code ec;
-    tcp_packet pkt_recv;
-    s.receive(pkt_recv, ec);
-    print_pkt(pkt_recv);
-
-    tcp_socket *tcp_s = s.accept(client_endpoint);
-    while (true)
-        tcp_s->handle(pkt_recv, 5000L);
+    s.start();
 
     return 0;
 }

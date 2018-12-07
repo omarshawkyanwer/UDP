@@ -1,7 +1,3 @@
-//
-// Created by anas_harby on 12/6/18.
-//
-
 #ifndef UDP_WORKER_THREAD_H
 #define UDP_WORKER_THREAD_H
 
@@ -13,8 +9,10 @@ using namespace boost::asio::ip;
 
 class tcp_socket {
     enum state {
-        ESTABLISHING,
-        LISTENING
+        LISTENING,
+        SYN_RECVD,
+        SYN_SENT,
+        ESTABLISHED
     };
 
 public:
@@ -35,5 +33,6 @@ private:
     tcp_packet last_pkt;
     uint32_t expected_ack_no;
     uint32_t cur_seq_no;
+    state cur_state;
 };
 #endif //UDP_WORKER_THREAD_H

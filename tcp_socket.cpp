@@ -16,6 +16,8 @@ tcp_socket::tcp_socket(const udp::endpoint &endpoint, udp::socket *socket) :
 }
 
 void tcp_socket::init() {
+    tcp_socket::cur_state = LISTENING;
+
     tcp_socket::timer_.expires_from_now(boost::posix_time::pos_infin);
     tcp_socket::check_timeout();
 

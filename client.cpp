@@ -12,7 +12,7 @@ enum { max_length = 1024 };
 static tcp_packet create_pkt() {
     tcp_packet pkt;
     pkt.src_port = 8080;
-    pkt.dest_port = 2000;
+    pkt.dest_port = 8000;
     pkt.seq_no = 1000;
     pkt.ack_no = 404;
     pkt.flags = 2020;

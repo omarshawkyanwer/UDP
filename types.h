@@ -5,6 +5,7 @@
 #ifndef RELIABLE_DATA_TRANSFER_TYPES_H
 #define RELIABLE_DATA_TRANSFER_TYPES_H
 #define PACKET_LENGTH 500
+#define CHECK_BIT(var, pos) ((var) & (1<<(pos)))
 
 #include <cstdint>
 #include <iostream>
