@@ -8,10 +8,10 @@
 using boost::asio::deadline_timer;
 
 tcp_socket::tcp_socket(const udp::endpoint &endpoint, udp::socket *socket) :
-        timer_(io_service_) {
+        timer_(socket->get_io_service()),
+        strand_(socket->get_io_service()) {
     tcp_socket::endpoint_ = endpoint;
     tcp_socket::socket_ = socket;
-
     tcp_socket::init();
 }
 
@@ -19,7 +19,7 @@ void tcp_socket::init() {
     tcp_socket::timer_.expires_from_now(boost::posix_time::pos_infin);
     tcp_socket::check_timeout();
 
-    boost::thread th(boost::bind(&boost::asio::io_service::run, &io_service_));
+    boost::thread th(boost::bind(&boost::asio::io_service::run, &socket_->get_io_service()));
     th.detach();
 }
 
@@ -48,10 +48,10 @@ void tcp_socket::handle(tcp_packet &pkt, long timeout_msec) {
 
     tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_to_send,
             sizeof(pkt_to_send)), tcp_socket::endpoint_,
-                boost::bind(&tcp_socket::send_callback, this,
+                strand_.wrap(boost::bind(&tcp_socket::send_callback, this,
                         boost::asio::placeholders::error(),
                         boost::asio::placeholders::bytes_transferred(),
-                        timeout_msec));
+                        timeout_msec)));
 
     if (ec)
         std::cerr << "Error sending!\n"; // Handle sending error

@@ -29,7 +29,7 @@ private:
 private:
     udp::endpoint endpoint_;
     udp::socket *socket_;
-    boost::asio::io_service io_service_;
+    boost::asio::io_service::strand strand_;
     boost::asio::deadline_timer timer_;
 
     tcp_packet last_pkt;
