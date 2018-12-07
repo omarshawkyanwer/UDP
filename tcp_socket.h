@@ -7,6 +7,7 @@
 
 
 #include <boost/asio.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include "types.h"
 using namespace boost::asio::ip;
 
@@ -17,20 +18,21 @@ class tcp_socket {
     };
 
 public:
-    tcp_socket(udp::endpoint);
-    void handle_request(tcp_packet &, boost::posix_time::time_duration);
-    void set_timer_expires_from_now(boost::posix_time::time_duration);
+    tcp_socket(const udp::endpoint &, udp::socket *);
+    void handle(tcp_packet &, long);
 
 private:
+    void init();
     void check_timeout();
+    void send_callback(const boost::system::error_code &, std::size_t, long);
 
 private:
     udp::endpoint endpoint_;
+    udp::socket *socket_;
     boost::asio::io_service io_service_;
-    udp::socket socket_;
     boost::asio::deadline_timer timer_;
-    tcp_packet last_pkt;
 
+    tcp_packet last_pkt;
     uint32_t expected_ack_no;
     uint32_t cur_seq_no;
 };

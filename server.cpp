@@ -47,12 +47,9 @@ public:
         return length;
     }
 
-    void accept() {
-        tcp_packet pkt;
-        boost::system::error_code ec;
-
-        socket_.receive(boost::asio::buffer(&pkt, sizeof(pkt)), 0, ec);
-
+    tcp_socket *accept(const udp::endpoint &endpoint) {
+        tcp_socket *tcp_s = new tcp_socket(endpoint, &this->socket_);
+        return tcp_s;
     }
 
 private:
@@ -95,54 +92,19 @@ static tcp_packet create_pkt() {
     return pkt;
 }
 
-int main2() {
+int main(int argc, char* argv[]) {
     udp::endpoint listen_endpoint(udp::v4(), 8000);
     udp::endpoint client_endpoint(udp::v4(), 8080);
     server s(listen_endpoint);
-
-    tcp_socket tcp_s(client_endpoint);
 
     boost::system::error_code ec;
     tcp_packet pkt_recv;
     s.receive(pkt_recv, ec);
     print_pkt(pkt_recv);
 
-    tcp_s.handle_request(pkt_recv, boost::posix_time::seconds(10));
+    tcp_socket *tcp_s = s.accept(client_endpoint);
+    while (true)
+        tcp_s->handle(pkt_recv, 5000L);
 
-    while (true) {
-        ;
-    }
-
-}
-
-int main(int argc, char* argv[]) {
-//    udp::endpoint listen_endpoint(udp::v4(), 8000);
-//    udp::endpoint client_endpoint(udp::v4(), 8080);
-//    server s(listen_endpoint);
-//
-//    while (true) {
-//        boost::system::error_code ec;
-//
-//        tcp_packet pkt_send = create_pkt();
-//        std::size_t n = s.send(pkt_send, client_endpoint, ec);
-//        std::cout << "Sent " << n << " bytes to client\n";
-//
-//        if (ec) {
-//            std::cout << "Sending error: " << ec.message() << "\n";
-//            continue;
-//        }
-//
-//        tcp_packet pkt_recv;
-//        n = s.receive(pkt_recv, client_endpoint, ec);
-//
-//        if (ec)
-//            std::cout << "Receive error: " << ec.message() << "\n";
-//        else {
-//            std::cout << "Received " << n << " bytes from client\n";
-//            print_pkt(pkt_recv);
-//            std::cout << "\n";
-//        }
-//    }
-    main2();
     return 0;
 }

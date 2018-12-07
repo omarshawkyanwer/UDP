@@ -54,12 +54,11 @@ int main(int argc, char* argv[])
 
             if (ec) {
                 std::cout << "Receiving error: " << ec.message() << std::endl;
-                continue;
+                break;
             }
-            break;
+            print_pkt(pkt);
         }
 
-        print_pkt(pkt);
     }
     catch (std::exception& e)
     {
