@@ -163,6 +163,33 @@ client.cpp.s:
 	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/client.cpp.s
 .PHONY : client.cpp.s
 
+protocols/selective_repeat.o: protocols/selective_repeat.cpp.o
+
+.PHONY : protocols/selective_repeat.o
+
+# target to build an object file
+protocols/selective_repeat.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/selective_repeat.cpp.o
+.PHONY : protocols/selective_repeat.cpp.o
+
+protocols/selective_repeat.i: protocols/selective_repeat.cpp.i
+
+.PHONY : protocols/selective_repeat.i
+
+# target to preprocess a source file
+protocols/selective_repeat.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/selective_repeat.cpp.i
+.PHONY : protocols/selective_repeat.cpp.i
+
+protocols/selective_repeat.s: protocols/selective_repeat.cpp.s
+
+.PHONY : protocols/selective_repeat.s
+
+# target to generate assembly for a file
+protocols/selective_repeat.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/selective_repeat.cpp.s
+.PHONY : protocols/selective_repeat.cpp.s
+
 server.o: server.cpp.o
 
 .PHONY : server.o
@@ -260,6 +287,9 @@ help:
 	@echo "... client.o"
 	@echo "... client.i"
 	@echo "... client.s"
+	@echo "... protocols/selective_repeat.o"
+	@echo "... protocols/selective_repeat.i"
+	@echo "... protocols/selective_repeat.s"
 	@echo "... server.o"
 	@echo "... server.i"
 	@echo "... server.s"

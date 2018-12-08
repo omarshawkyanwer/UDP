@@ -5,6 +5,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "types.h"
 #include "tcp_socket.h"
+#include "protocols/selective_repeat.h"
 
 using boost::asio::ip::udp;
 using boost::asio::deadline_timer;
@@ -34,7 +35,8 @@ private:
         if (server::open_sockets.find(key) == server::open_sockets.end()) {
             /* Create a new tcp_socket and put it in map */
             udp::endpoint client_endpoint(udp::v4(), pkt.src_port);
-            auto *new_socket = new tcp_socket(endpoint_, client_endpoint, &this->socket_);
+            auto *protocol = new selective_repeat(&this->socket_, this->endpoint_);
+            auto *new_socket = new tcp_socket(endpoint_, client_endpoint, &this->socket_, protocol);
             server::open_sockets.insert(std::pair<std::string, tcp_socket*>(key, new_socket));
         }
         /* Forward packet to the open socket after */

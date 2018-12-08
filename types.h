@@ -1,7 +1,3 @@
-//
-// Created by ahmed on 03/12/18.
-//
-
 #ifndef RELIABLE_DATA_TRANSFER_TYPES_H
 #define RELIABLE_DATA_TRANSFER_TYPES_H
 #define PACKET_LENGTH 500
@@ -54,8 +50,6 @@ struct ack_packet {
     uint16_t len;
     uint32_t ackno;
 };
-
-std::size_t from_pkt(char *str, const tcp_packet &pkt);
 
 bool is_packet(char *);
 

@@ -5,6 +5,8 @@
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include "types.h"
+#include "transmission.h"
+
 using namespace boost::asio::ip;
 
 class tcp_socket {
@@ -12,14 +14,15 @@ class tcp_socket {
         INITIALIZED,
         LISTENING,
         SYN_RECVD,
-        SYN_SENT,
         ESTABLISHED
     };
 
 public:
-    tcp_socket(const udp::endpoint &, const udp::endpoint &, udp::socket *);
+    tcp_socket(const udp::endpoint &, const udp::endpoint &,
+            udp::socket *, transmission_protocol *protocol);
     void listen();
     void open();
+    void send(char bytes[], int len);
     void handle_received(tcp_packet &pkt, long timeout_msec);
 
 private:
@@ -42,10 +45,14 @@ private:
     udp::socket *socket_;
     boost::asio::io_service::strand strand_;
     boost::asio::deadline_timer timer_;
+    transmission_protocol *protocol_;
 
-    tcp_packet last_pkt;
-    uint32_t expected_ack_no;
-    uint32_t cur_seq_no;
     connection_state cur_state;
+    uint32_t seq_no = 0;
+    std::map<uint32_t, boost::asio::deadline_timer> packet_timer_map;
+    std::map<uint32_t, tcp_packet> seq_window;
+    std::map<uint32_t, tcp_packet> ack_window;
+
+    const int CHUNK_SIZE = 500;
 };
 #endif //UDP_WORKER_THREAD_H
