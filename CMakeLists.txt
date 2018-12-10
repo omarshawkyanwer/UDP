@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.5.1)
 project(UDP)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS -pthread)
 SET(CMAKE_BUILD_TYPE Debug)
-set(SERVER_SOURCE_FILES server.cpp types.h types.cpp tcp_socket.cpp tcp_socket.h transmission.h protocols/selective_repeat.cpp protocols/selective_repeat.h)
-set(CLIENT_SOURCE_FILES client.cpp types.h types.cpp)
+set(SERVER_SOURCE_FILES server.cpp types.h types.cpp tcp_socket.cpp tcp_socket.h transmission.h protocols/selective_repeat.cpp protocols/selective_repeat.h main.cpp)
+set(CLIENT_SOURCE_FILES client.cpp types.h types.cpp main.cpp)
 
 find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 if (Boost_FOUND)

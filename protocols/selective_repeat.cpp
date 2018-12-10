@@ -34,7 +34,8 @@ void selective_repeat::send_single(uint32_t seq_no) {
 
 void selective_repeat::send_callback(const boost::system::error_code &ec,
          uint32_t seq_no) {
-    if (ec) {
+    if (ec) //Error in transmission
+    {
         selective_repeat::send_single(seq_no);
         return;
     }

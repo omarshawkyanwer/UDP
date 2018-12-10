@@ -11,8 +11,8 @@ using namespace boost::asio::ip;
 
 class tcp_socket {
     enum connection_state {
-        INITIALIZED,
-        LISTENING,
+        INITIALIZED, //waiting for handshake
+        LISTENING, //starting handshake
         SYN_RECVD,
         ESTABLISHED
     };
@@ -22,10 +22,11 @@ public:
             udp::socket *, transmission_protocol *protocol);
     void listen();
     void open();
-    void send(char bytes[], int len);
+    int send(char bytes[], int len);
+    int recieve(char bytes[],int len);
     void handle_received(tcp_packet &pkt, long timeout_msec);
-
 private:
+
     void init();
     tcp_packet make_pkt();
 
@@ -39,14 +40,19 @@ private:
     void check_timeout();
     void send_callback(const boost::system::error_code &, std::size_t, long);
 
+    void segmenize(char bytes[],int len);
+
 private:
+    static uint32_t  MSR;
+
     udp::endpoint listening_endpoint_;
     udp::endpoint endpoint_;
     udp::socket *socket_;
     boost::asio::io_service::strand strand_;
     boost::asio::deadline_timer timer_;
     transmission_protocol *protocol_;
-
+    tcp_packet packets_to_send[300];
+    int no_of_packets;
     connection_state cur_state;
     uint32_t seq_no = 0;
     std::map<uint32_t, boost::asio::deadline_timer> packet_timer_map;

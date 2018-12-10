@@ -1,3 +1,4 @@
+#include "tcp_socket.h"
 #include <utility>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
@@ -50,7 +51,28 @@ void tcp_socket::open() {
                     SYN_RECVD, -1)));
 }
 
-void tcp_socket::send(char bytes[], int len) {
+
+//void tcp_socket::segmenize(char bytes[],int len,tcp_packet[] packs){
+//
+//}
+void tcp_socket::segmenize(char bytes[],int len){
+    no_of_packets = 0;
+
+    while(len) {
+        int size = (len < CHUNK_SIZE)?len:CHUNK_SIZE;
+        packets_to_send[no_of_packets++] = encaps(bytes,size);
+        bytes+=size;
+        len-=size;
+    }
+}
+
+int tcp_socket::send(char bytes[], int len) {
+    segmenize(bytes,len);
+
+}
+
+
+int tcp_socket::recieve(char bytes[],int len){
 
 }
 

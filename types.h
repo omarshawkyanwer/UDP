@@ -6,12 +6,26 @@
 
 #include <cstdint>
 #include <iostream>
+struct tcp_packet *from_str(char *str);
+struct tcp_packet encaps(char *,int);
+std::size_t from_pkt(char *str, const tcp_packet &pkt);
 
+struct header_packet{
+    /* Headers */
+    uint16_t src_port, dest_port;
+    uint32_t seq_no;
+    uint32_t ack_no;
+    uint32_t data_size;
+    uint16_t flags;                 // headlen|unused|U|A|P|R|S|F
+    uint16_t recvw;                 // receive window (#bytes recv willing to accept)
+    uint16_t checksum, urg_data_ptr;
+};
 struct tcp_packet {
     /* Headers */
     uint16_t src_port, dest_port;
     uint32_t seq_no;
     uint32_t ack_no;
+    uint32_t data_size;
 
     uint16_t flags;                 // headlen|unused|U|A|P|R|S|F
     uint16_t recvw;                 // receive window (#bytes recv willing to accept)
@@ -33,34 +47,5 @@ static void print_pkt(tcp_packet pkt) {
     std::cout << pkt.recvw << std::endl;
     std::cout << pkt.data << std::endl;
 }
-
-struct packet {
-    /* Header */
-    uint32_t flags;
-    uint16_t cksum;
-    uint16_t len;
-    uint32_t seqno;
-    /* Data */
-    char data[PACKET_LENGTH]; /* Not always 500 bytes, can be less */
-};
-
-struct ack_packet {
-    uint32_t flags;
-    uint16_t cksum;
-    uint16_t len;
-    uint32_t ackno;
-};
-
-bool is_packet(char *);
-
-struct packet str_to_packet(char *);
-
-struct ack_packet str_to_ack(char *);
-
-char *packet_to_str(struct packet);
-
-char *ack_to_str(struct ack_packet);
-
-struct packet encaps(char *msg, uint16_t len, int index);
 
 #endif //RELIABLE_DATA_TRANSFER_TYPES_H
