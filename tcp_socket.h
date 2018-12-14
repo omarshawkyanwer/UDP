@@ -6,6 +6,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include "types.h"
 #include "transmission.h"
+#include <iostream>
 
 using namespace boost::asio::ip;
 
@@ -40,7 +41,6 @@ private:
     void check_timeout();
     void send_callback(const boost::system::error_code &, std::size_t, long);
 
-    void segmenize(char bytes[],int len);
 
 private:
     static uint32_t  MSS;

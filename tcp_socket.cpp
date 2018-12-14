@@ -1,4 +1,3 @@
-#include "tcp_socket.h"
 #include <utility>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
@@ -51,43 +50,25 @@ void tcp_socket::open() {
                     SYN_RECVD, -1)));
 }
 
+void tcp_socket::send(char bytes[], int len) {
+    uint32_t seq_no = 0;
+    std::map<uint32_t, tcp_packet> pkts_to_send;
 
-//void tcp_socket::segmenize(char bytes[],int len,tcp_packet[] packs){
-//
-//}
-void tcp_socket::segmenize(char bytes[],int len){
-    no_of_packets = 0;
-
-    while(len) {
-        int size = (len < CHUNK_SIZE)?len:CHUNK_SIZE;
-        packets_to_send[no_of_packets++] = encaps(bytes,size);
-        bytes+=size;
-        len-=size;
+    while (seq_no < len) {
+        tcp_packet pkt = make_pkt();
+        pkt.seq_no = seq_no;
+        std::memcpy(pkt.data, bytes + seq_no, (size_t) CHUNK_SIZE);
+        pkts_to_send[seq_no] = pkt;
+        seq_no += CHUNK_SIZE;
     }
+    tcp_socket::protocol_->send_data(pkts_to_send);
 }
 
-int tcp_socket::send(char bytes[], int len) {
-    segmenize(bytes,len);
-
-}
-
-
-int tcp_socket::recieve(char bytes[],int len){
-
-}
-
-
- tcp_packet tcp_socket::make_pkt() {
+tcp_packet tcp_socket::make_pkt() {
     tcp_packet pkt{};
     pkt.src_port = tcp_socket::listening_endpoint_.port();
     pkt.dest_port = tcp_socket::endpoint_.port();
     return pkt;
-}
-
-void tcp_socket::send_callback(const boost::system::error_code &ec, std::size_t,
-                               long timeout_msec) {
-    std::cout << "Setting timeout_msec!\n";
-    tcp_socket::timer_.expires_from_now(boost::posix_time::milliseconds(timeout_msec));
 }
 
 void tcp_socket::handle_received(tcp_packet &pkt, long timeout_msec) {
@@ -110,7 +91,7 @@ void tcp_socket::handle_received(tcp_packet &pkt, long timeout_msec) {
 }
 
 void tcp_socket::state_transition_callback(const boost::system::error_code &ec,
-        std::size_t, enum connection_state next_state, long timeout_msec) {
+                                           std::size_t, enum connection_state next_state, long timeout_msec) {
     if (timeout_msec != -1)
         tcp_socket::timer_.expires_from_now(boost::posix_time::milliseconds(timeout_msec));
     tcp_socket::cur_state = next_state;
@@ -128,7 +109,7 @@ void tcp_socket::handle_on_listen(tcp_packet &pkt, long timeout_msec) {
     SET_BIT(pkt_send.flags, 4); /* Set ACK flag */
 
     tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
-            tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
+                                       tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
                     &tcp_socket::state_transition_callback, this,
                     boost::asio::placeholders::error(),
                     boost::asio::placeholders::bytes_transferred(),
@@ -145,28 +126,13 @@ void tcp_socket::handle_on_syn_recvd(tcp_packet &pkt, long) {
 }
 
 void tcp_socket::handle_on_established(tcp_packet &pkt, long timeout_msec) {
-//    tcp_packet pkt_to_send{};
-
-//    if (pkt.ack_no != tcp_socket::expected_ack_no)
-//        pkt_to_send = tcp_socket::last_pkt;
-//    else
-//        ; // TODO: Fill in packet member variables.
-//
-//    tcp_socket::last_pkt = pkt_to_send;
-//
-//    boost::system::error_code ec;
-//
-//    pkt_to_send = pkt; //TODO: Remove: testing
-//
-//    tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_to_send,
-//            sizeof(pkt_to_send)), tcp_socket::endpoint_,
-//                    tcp_socket::strand_.wrap(boost::bind(&tcp_socket::send_callback, this,
-//                            boost::asio::placeholders::error(),
-//                            boost::asio::placeholders::bytes_transferred(),
-//                            timeout_msec)));
-//
-//    if (ec)
-//        std::cerr << "Error sending!\n"; // Handle sending error
+    /* Check for ack flag at position 4 */
+    bool ack = CHECK_BIT(pkt.flags, 4) != 0;
+    if (ack)
+        tcp_socket::protocol_->handle_received_ack(pkt);
+    else
+            ;
+//        tcp_socket::protocol_->handle_received_data(pkt);
 }
 
 void tcp_socket::check_timeout() {
