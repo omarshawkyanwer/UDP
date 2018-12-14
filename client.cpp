@@ -17,8 +17,10 @@ public:
         client::client_endpoint_ = client_endpoint;
         client::server_endpoint_ = server_endpoint;
         protocol = new selective_repeat(&this->socket_, this->server_endpoint_);
-        tcp_socket* new_socket = new tcp_socket(client_endpoint_, server_endpoint_, &this->socket_, protocol);
+        new_socket = new tcp_socket(client_endpoint_, server_endpoint_, &this->socket_, protocol);
+        char dummy[500] = "dumm";
 
+        new_socket->send(dummy,5);
     }
     //how to get ack number from recieved data packet
 
@@ -29,15 +31,19 @@ public:
         while(true){
             tcp_packet newly_recieved;
             socket_.receive(boost::asio::buffer(&newly_recieved, sizeof(newly_recieved)));
-            int bytes_written = protocol->handle_received_data(newly_recieved,buffer,offset,10*1024);
-            if(bytes_written <= 0){
+            int bytes_written = new_socket->handle_data(newly_recieved,buffer,offset,10*1024);
+
+            if(bytes_written <= 0 || CHECK_BIT(newly_recieved.flags,6)){
                 char write_buffer[offset];
                 memcpy( write_buffer, buffer, offset );
+                std::cout<<write_buffer<<std::endl;
                 output_file<<write_buffer;
                 offset = 0;
             }else{
                 offset += bytes_written;
             }
+            if(CHECK_BIT(newly_recieved.flags,6))
+                break;
         }
         output_file.close();
     }
@@ -64,13 +70,17 @@ int main(int argc, char* argv[])
      * */
     //Getting command line parameters
 
-    int client_port_number = atoi(argv[2]);
-    int server_port_number = atoi(argv[3]);
-    int protocol = atoi(argv[3]);
+    //int client_port_number = atoi(argv[2]);
+    int client_port_number = 7999;
+
+    //int server_port_number = atoi(argv[3]);
+    int server_port_number = 8000;
+
+    //int protocol = atoi(argv[3]);
     //TODO: intialize the protocol type (stop and wait/selective repeat)
     udp::endpoint client_endpoint(udp::v4(), client_port_number);
     udp::endpoint server_endpoint(udp::v4(), server_port_number);
     client c(client_endpoint,server_endpoint);
-    c.handle_recieving_file(argv[1]);
+    c.handle_recieving_file("test.txt");
     return 0;
 }

@@ -26,6 +26,8 @@ public:
     void send(char bytes[], int len);
     int recieve(char bytes[],int len);
     void handle_received(tcp_packet &pkt, long timeout_msec);
+    int handle_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len);
+
 private:
 
     void init();
@@ -40,7 +42,6 @@ private:
 
     void check_timeout();
     void send_callback(const boost::system::error_code &, std::size_t, long);
-    int handle_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len);
 
 private:
     static uint32_t  MSS;

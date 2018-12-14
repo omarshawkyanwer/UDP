@@ -4,6 +4,8 @@
 #include <boost/asio/ip/udp.hpp>
 #include <map>
 #include <boost/asio/deadline_timer.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread.hpp>
 #include <set>
 #include "types.h"
 using namespace boost::asio::ip;
@@ -76,7 +78,7 @@ protected:
     boost::asio::ip::udp::endpoint endpoint_;
 
     long timeout_msec = 5000;
-    int window_size = 0;
+    int window_size = 1;
     uint32_t next_seq_no = 0;
     std::map<uint32_t , tcp_packet>::iterator sender_window_base;
     std::map<uint32_t, boost::asio::deadline_timer *> packet_timer_map;

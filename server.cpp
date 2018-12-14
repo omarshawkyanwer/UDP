@@ -7,7 +7,8 @@
 #include "tcp_socket.h"
 #include "protocols/selective_repeat.h"
 #include "file_handler.h"
-
+#include <mutex>
+#include <thread>
 using boost::asio::ip::udp;
 using boost::asio::deadline_timer;
 
@@ -44,7 +45,7 @@ private:
             /*
              * TODO: add the correct file name
              */
-            file_handler_  = new file_handler("habalo.txt");
+            file_handler_  = new file_handler("../habalo.txt");
         }
         server::open_sockets[key]->handle_received(pkt, server::timeout);
         int read_bytes = file_handler_->get_next_bytes(data_chunk,500);

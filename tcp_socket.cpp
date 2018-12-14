@@ -61,6 +61,9 @@ void tcp_socket::send(char bytes[], int len) {
         pkts_to_send[seq_no] = pkt;
         seq_no += CHUNK_SIZE;
     }
+    if(pkts_to_send.size() > 0 ) {
+        SET_BIT(pkts_to_send.end()->second.flags,6);
+    }
     tcp_socket::protocol_->send_data(pkts_to_send);
 }
 
