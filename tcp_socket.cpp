@@ -51,21 +51,24 @@ void tcp_socket::open() {
 }
 
 void tcp_socket::send(char bytes[], int len) {
-    
-}
+    uint32_t seq_no = 0;
+    std::map<uint32_t, tcp_packet> pkts_to_send;
 
+    while (seq_no < len) {
+        tcp_packet pkt = make_pkt();
+        pkt.seq_no = seq_no;
+        std::memcpy(pkt.data, bytes + seq_no, (size_t) CHUNK_SIZE);
+        pkts_to_send[seq_no] = pkt;
+        seq_no += CHUNK_SIZE;
+    }
+    tcp_socket::protocol_->send_data(pkts_to_send);
+}
 
  tcp_packet tcp_socket::make_pkt() {
     tcp_packet pkt{};
     pkt.src_port = tcp_socket::listening_endpoint_.port();
     pkt.dest_port = tcp_socket::endpoint_.port();
     return pkt;
-}
-
-void tcp_socket::send_callback(const boost::system::error_code &ec, std::size_t,
-                               long timeout_msec) {
-    std::cout << "Setting timeout_msec!\n";
-    tcp_socket::timer_.expires_from_now(boost::posix_time::milliseconds(timeout_msec));
 }
 
 void tcp_socket::handle_received(tcp_packet &pkt, long timeout_msec) {

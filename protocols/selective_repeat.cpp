@@ -9,6 +9,7 @@ selective_repeat::selective_repeat(udp::socket *socket,
 }
 
 void selective_repeat::send_data(std::map<uint32_t, tcp_packet> &pkts) {
+    selective_repeat::sender_window.clear();
     selective_repeat::pkts_to_send.clear();
     selective_repeat::pkts_to_send.insert(pkts.begin(), pkts.end());
     selective_repeat::sender_window_base = selective_repeat::pkts_to_send.begin();
@@ -19,6 +20,9 @@ void selective_repeat::send_data(std::map<uint32_t, tcp_packet> &pkts) {
         selective_repeat::send_single(it->first);
         it++;
     }
+
+    while (selective_repeat::sender_window_base != selective_repeat::sender_window.end())
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
 }
 
 void selective_repeat::send_single(uint32_t seq_no) {

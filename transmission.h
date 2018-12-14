@@ -82,5 +82,7 @@ protected:
     std::map<uint32_t, tcp_packet> recv_window;
     char buf[10000];
     const uint32_t RWND = 2500;
+
+    bool done = false;
 };
 #endif //UDP_TRANSMISSION_H
