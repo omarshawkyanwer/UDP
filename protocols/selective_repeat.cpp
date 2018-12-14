@@ -11,7 +11,7 @@ selective_repeat::selective_repeat(udp::socket *socket,
 void selective_repeat::send_data(std::map<uint32_t, tcp_packet> &pkts) {
     selective_repeat::pkts_to_send.clear();
     selective_repeat::pkts_to_send.insert(pkts.begin(), pkts.end());
-    selective_repeat::window_base = selective_repeat::pkts_to_send.begin();
+    selective_repeat::sender_window_base = selective_repeat::pkts_to_send.begin();
 
     int count = selective_repeat::window_size;
     auto it = selective_repeat::pkts_to_send.begin();
@@ -62,10 +62,10 @@ void selective_repeat::handle_received_ack(tcp_packet &pkt) {
     tcp_packet pkt_acked = selective_repeat::sender_window[pkt.ack_no];
     selective_repeat::sender_window.erase(pkt_acked.seq_no);
 
-    while (selective_repeat::window_base != selective_repeat::pkts_to_send.end() &&
-            selective_repeat::sender_window.find(selective_repeat::window_base->second.seq_no)
+    while (selective_repeat::sender_window_base != selective_repeat::pkts_to_send.end() &&
+            selective_repeat::sender_window.find(selective_repeat::sender_window_base->second.seq_no)
                 == selective_repeat::sender_window.end()) {
-        selective_repeat::window_base++;
+        selective_repeat::sender_window_base++;
         selective_repeat::send_single(selective_repeat::next_seq_no);
     }
 }

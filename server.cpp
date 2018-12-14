@@ -31,7 +31,6 @@ public:
 private:
     void handle_packet(tcp_packet &pkt) {
         std::string key = std::to_string(pkt.src_port);
-        server::socket_map_mtx.lock();
         if (server::open_sockets.find(key) == server::open_sockets.end()) {
             /* Create a new tcp_socket and put it in map */
             udp::endpoint client_endpoint(udp::v4(), pkt.src_port);
@@ -41,7 +40,6 @@ private:
         }
         /* Forward packet to the open socket after */
         server::open_sockets[key]->handle_received(pkt, server::timeout);
-        server::socket_map_mtx.unlock();
     }
 
 private:
