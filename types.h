@@ -10,16 +10,7 @@ struct tcp_packet *from_str(char *str);
 struct tcp_packet encaps(char *,int);
 std::size_t from_pkt(char *str, const tcp_packet &pkt);
 
-struct header_packet{
-    /* Headers */
-    uint16_t src_port, dest_port;
-    uint32_t seq_no;
-    uint32_t ack_no;
-    uint32_t data_size;
-    uint16_t flags;                 // headlen|unused|U|A|P|R|S|F
-    uint16_t recvw;                 // receive window (#bytes recv willing to accept)
-    uint16_t checksum, urg_data_ptr;
-};
+
 struct tcp_packet {
     /* Headers */
     uint16_t src_port, dest_port;

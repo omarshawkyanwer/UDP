@@ -4,7 +4,7 @@
 #include "additive_multiplicative.h"
 
 int additive_multiplicative::new_ack(int curr_size) {
-    return ++curr_size;
+    return curr_size+500;
 }
 int additive_multiplicative::time_out(int curr_size) {
     return curr_size >>1;

@@ -2,6 +2,7 @@
 #define UDP_STOP_WAIT_PROTOCOL_H
 
 #include "../transmission.h"
+#include "congestion_control.h"
 
 class selective_repeat : public transmission_protocol {
 public:
@@ -11,6 +12,7 @@ public:
 
 private:
     int window_base = 0;
+    congestion_control *controller;
     uint32_t next_seq_no = 0;
     std::map<uint32_t, boost::asio::deadline_timer *> packet_timer_map;
     std::map<uint32_t, tcp_packet> pkts_to_send;

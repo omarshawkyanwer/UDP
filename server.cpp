@@ -39,6 +39,7 @@ private:
             auto *protocol = new selective_repeat(&this->socket_, this->endpoint_);
             auto *new_socket = new tcp_socket(endpoint_, client_endpoint, &this->socket_, protocol);
             server::open_sockets.insert(std::pair<std::string, tcp_socket*>(key, new_socket));
+
         }
         /* Forward packet to the open socket after */
         server::open_sockets[key]->handle_received(pkt, server::timeout);

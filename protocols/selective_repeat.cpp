@@ -1,10 +1,12 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include "selective_repeat.h"
+#include "additive_multiplicative.h"
 
 selective_repeat::selective_repeat(udp::socket *socket,
                                    const udp::endpoint &endpoint) :
         transmission_protocol(socket, endpoint) {
+    controller = new additive_multiplicative();
 
 }
 
@@ -58,6 +60,7 @@ void selective_repeat::send_callback(const boost::system::error_code &ec,
 void selective_repeat::handle_timeout(uint32_t seq_no) {
     auto timer = selective_repeat::packet_timer_map[seq_no];
     if (timer->expires_at() <= boost::asio::deadline_timer::traits_type::now()) {
+        window_size = controller->time_out(window_size);
         selective_repeat::send_single(seq_no);
     }
 }
@@ -70,6 +73,7 @@ void selective_repeat::handle_received_ack(tcp_packet &pkt) {
            selective_repeat::sender_window.find(selective_repeat::sender_window_base->second.seq_no)
            == selective_repeat::sender_window.end()) {
         selective_repeat::sender_window_base++;
+        window_size = controller->new_ack(window_size);
         selective_repeat::send_single(selective_repeat::next_seq_no);
     }
 }

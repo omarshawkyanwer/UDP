@@ -134,7 +134,9 @@ void tcp_socket::handle_on_established(tcp_packet &pkt, long timeout_msec) {
             ;
 //        tcp_socket::protocol_->handle_received_data(pkt);
 }
-
+int tcp_socket::handle_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len) {
+    return tcp_socket::protocol_->handle_received_data(pkt,buf,offset,max_len);
+}
 void tcp_socket::check_timeout() {
     if (timer_.expires_at() <= deadline_timer::traits_type::now()) {
         // socket_.cancel();
