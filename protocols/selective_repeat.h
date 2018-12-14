@@ -14,6 +14,7 @@ public:
 private:
     void send_single(uint32_t);
     void send_callback(const boost::system::error_code &, uint32_t);
+    void handle_timeout(uint32_t);
 };
 
 
