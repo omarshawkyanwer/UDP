@@ -3,65 +3,74 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include "types.h"
+#include <fstream>
+#include "tcp_socket.h"
+#include "protocols/selective_repeat.h"
 
 using boost::asio::ip::udp;
 
-enum { max_length = 1024 };
 
-static tcp_packet create_pkt() {
-    tcp_packet pkt;
-    pkt.src_port = 8080;
-    pkt.dest_port = 8000;
-    pkt.seq_no = 1000;
-    pkt.ack_no = 404;
-    pkt.flags = 2020;
-    pkt.urg_data_ptr = 1;
-    pkt.checksum = 2000;
-    pkt.recvw = 120;
-    strcpy(pkt.data, "TESTING");
-    return pkt;
-}
+class client {
+public:
+    explicit client(const udp::endpoint &client_endpoint,const udp::endpoint &server_endpoint) :
+            socket_(io_service_, client_endpoint) {
+        client::client_endpoint_ = client_endpoint;
+        client::server_endpoint_ = server_endpoint;
+        protocol = new selective_repeat(&this->socket_, this->server_endpoint_);
+        tcp_socket* new_socket = new tcp_socket(client_endpoint_, server_endpoint_, &this->socket_, protocol);
+
+    }
+    //how to get ack number from recieved data packet
+
+    void handle_recieving_file(char* file_path){
+        char* buffer = new char[10*1024];
+        int offset = 0;
+        std::ofstream output_file(file_path);
+        while(true){
+            tcp_packet newly_recieved;
+            socket_.receive(boost::asio::buffer(&newly_recieved, sizeof(newly_recieved)));
+            int bytes_written = protocol->handle_received_data(newly_recieved,buffer,offset,10*1024);
+            if(bytes_written <= 0){
+                char write_buffer[offset];
+                memcpy( write_buffer, buffer, offset );
+                output_file<<write_buffer;
+                offset = 0;
+            }else{
+                offset += bytes_written;
+            }
+        }
+        output_file.close();
+    }
+
+private:
+    udp::endpoint client_endpoint_,server_endpoint_;
+    boost::asio::io_service io_service_;
+    transmission_protocol* protocol;
+    udp::socket socket_;
+    tcp_socket* new_socket;
+};
 
 int main(int argc, char* argv[])
 {
-    try
-    {
-        boost::asio::io_service io_service;
-        udp::endpoint endpoint(udp::v4(), 8000);
-        udp::endpoint sender_endpoint(udp::v4(), 8080);
-        udp::socket s(io_service, sender_endpoint);
 
-        boost::system::error_code ec;
-        tcp_packet pkt = create_pkt();
+    /*
+     * 1 The first argument is file Name.
+     * 2 The second argument is the client's port number.
+     * 3 The third argument is the server's port number.
+     * 4 The fourth argument is the protocol type :
+     * 0 ---> stop and wait.
+     * 1 ---> selective repeat
+     *
+     * */
+    //Getting command line parameters
 
-        /* Sends received packet */
-        while (true) {
-            std::cout << "Sending back packet... \n";
-            s.send_to(boost::asio::buffer(&pkt, sizeof(pkt)), endpoint, 0, ec);
-
-            if (ec) {
-                std::cout << "Sending error: " << ec.message() << std::endl;
-                continue;
-            }
-            break;
-        }
-
-        /* Receives packet from server */
-        while (true) {
-            std::cout << "Receiving... \n";
-            s.receive_from(boost::asio::buffer(&pkt, sizeof(pkt)), sender_endpoint, 0, ec);
-
-            if (ec) {
-                std::cout << "Receiving error: " << ec.message() << std::endl;
-                break;
-            }
-            print_pkt(pkt);
-        }
-
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << "Exception: " << e.what() << "\n";
-    }
+    int client_port_number = atoi(argv[2]);
+    int server_port_number = atoi(argv[3]);
+    int protocol = atoi(argv[3]);
+    //TODO: intialize the protocol type (stop and wait/selective repeat)
+    udp::endpoint client_endpoint(udp::v4(), client_port_number);
+    udp::endpoint server_endpoint(udp::v4(), server_port_number);
+    client c(client_endpoint,server_endpoint);
+    c.handle_recieving_file(argv[1]);
     return 0;
 }

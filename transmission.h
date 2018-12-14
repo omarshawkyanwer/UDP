@@ -31,10 +31,10 @@ public:
     size_t handle_received_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len) {
         if (pkt.seq_no < recv_window_base) {
             send_ack(pkt.seq_no);
-            return;
+            return 0;
         }
         else if (pkt.seq_no > recv_window_base + RWND) /* Out of window scope */
-            return;
+            return 0;
 
         recv_window[pkt.seq_no] = pkt;
         send_ack(pkt.seq_no);

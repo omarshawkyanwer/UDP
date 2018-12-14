@@ -7,7 +7,7 @@
 
 #include "congestion_control.h"
 
-class additive_multiplicative : congestion_control{
+class additive_multiplicative : public congestion_control{
 public:
     additive_multiplicative(){
 

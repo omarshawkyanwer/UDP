@@ -23,7 +23,7 @@ public:
             udp::socket *, transmission_protocol *protocol);
     void listen();
     void open();
-    int send(char bytes[], int len);
+    void send(char bytes[], int len);
     int recieve(char bytes[],int len);
     void handle_received(tcp_packet &pkt, long timeout_msec);
 private:
