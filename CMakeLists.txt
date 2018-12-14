@@ -3,6 +3,8 @@ project(UDP)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS -pthread)
+set(BOOST_ROOT /usr/local/Cellar/boost/1.68.0)
+set(BOOST_INCLUDEDIR /usr/local/Cellar/boost/1.68.0/include)
 SET(CMAKE_BUILD_TYPE Debug)
 set(SERVER_SOURCE_FILES server.cpp types.h types.cpp tcp_socket.cpp tcp_socket.h transmission.h protocols/selective_repeat.cpp protocols/selective_repeat.h)
 set(CLIENT_SOURCE_FILES client.cpp types.h types.cpp)
