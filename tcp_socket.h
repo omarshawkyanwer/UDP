@@ -43,7 +43,7 @@ private:
     void segmenize(char bytes[],int len);
 
 private:
-    static uint32_t  MSR;
+    static uint32_t  MSS;
 
     udp::endpoint listening_endpoint_;
     udp::endpoint endpoint_;

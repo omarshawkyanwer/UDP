@@ -32,6 +32,10 @@ void selective_repeat::send_single(uint32_t seq_no) {
     selective_repeat::next_seq_no += std::strlen(pkt_send.data);
 }
 
+void selective_repeat::handle_timeout(uint32_t pkt){
+
+}
+
 void selective_repeat::send_callback(const boost::system::error_code &ec,
          uint32_t seq_no) {
     if (ec) //Error in transmission
@@ -48,6 +52,7 @@ void selective_repeat::send_callback(const boost::system::error_code &ec,
     }
     auto *timer = selective_repeat::packet_timer_map[seq_no];
     timer->expires_from_now(boost::posix_time::milliseconds(selective_repeat::timeout_msec));
+    timer->async_wait(boost::bind(&selective_repeat::handle_timeout, this,seq_no));
 }
 
 void selective_repeat::handle_received_ack(tcp_packet &pkt) {

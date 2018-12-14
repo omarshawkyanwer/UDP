@@ -31,11 +31,7 @@ protected:
 
     long timeout_msec = 5000;
     int window_size = 0;
-    int window_base = 0;
-    uint32_t next_seq_no = 0;
-    std::map<uint32_t, boost::asio::deadline_timer *> packet_timer_map;
-    std::map<uint32_t, tcp_packet> pkts_to_send;
-    std::map<uint32_t, tcp_packet> sender_window;
+
 
 };
 #endif //UDP_TRANSMISSION_H
