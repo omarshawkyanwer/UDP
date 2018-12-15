@@ -3,6 +3,12 @@
 
 #include "../transmission.h"
 #include "congestion_control.h"
+#include <ctime>
+#include <vector>
+#include <utility>
+
+
+
 
 class selective_repeat : public transmission_protocol {
 public:
@@ -14,6 +20,10 @@ public:
 protected:
     int window_base = 0;
     congestion_control *controller;
+    std::clock_t sending_start_time_,sending_end_time_;
+    std::vector< std::pair< double ,int> > window_size_at_time_t;
+    double total_sending_duration = 0;
+
 private:
     uint32_t next_seq_no = 0;
     std::map<uint32_t, boost::asio::deadline_timer *> packet_timer_map;
@@ -21,6 +31,7 @@ private:
     std::map<uint32_t, tcp_packet> sender_window;
     void handle_timeout(uint32_t);
     void send_single(uint32_t);
+
 
 };
 

@@ -1,6 +1,7 @@
 #ifndef UDP_TRANSMISSION_H
 #define UDP_TRANSMISSION_H
 
+#include <boost/asio/placeholders.hpp>
 #include <boost/asio/ip/udp.hpp>
 #include <map>
 #include <boost/asio/deadline_timer.hpp>
@@ -8,6 +9,7 @@
 #include <boost/thread.hpp>
 #include <set>
 #include "types.h"
+
 using namespace boost::asio::ip;
 
 class transmission_protocol {
