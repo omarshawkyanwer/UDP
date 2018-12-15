@@ -19,28 +19,43 @@ public:
         protocol = new selective_repeat(&this->socket_, this->server_endpoint_);
         new_socket = new tcp_socket(client_endpoint_, server_endpoint_, &this->socket_, protocol);
         char dummy[500] = "dumm";
+        tcp_packet pkt{};
+        pkt.src_port = client_endpoint.port();
+        pkt.dest_port = server_endpoint.port();
 
-        new_socket->send(dummy,5);
+        strcpy(pkt.data,dummy);
+
+       new_socket->open();
+
+//       this->socket_.async_send_to(
+//                boost::asio::buffer(&pkt, sizeof(pkt)),
+//                server_endpoint, boost::bind(
+//                        &selective_repeat::send_callback, protocol,
+//                        boost::asio::placeholders::error(), 0));
     }
     //how to get ack number from recieved data packet
 
     void handle_recieving_file(char* file_path){
         char* buffer = new char[10*1024];
-        int offset = 0;
+        uint32_t offset = 0;
+        new_socket->set_buffer(buffer,offset,10*1024);
+
         std::ofstream output_file(file_path);
         while(true){
             tcp_packet newly_recieved;
+
             socket_.receive(boost::asio::buffer(&newly_recieved, sizeof(newly_recieved)));
-            int bytes_written = new_socket->handle_data(newly_recieved,buffer,offset,10*1024);
+            new_socket->handle_received(newly_recieved,5000l);
+             uint32_t bytes_written = new_socket->recieved();
 
             if(bytes_written <= 0 || CHECK_BIT(newly_recieved.flags,6)){
+                offset += bytes_written;
                 char write_buffer[offset];
                 memcpy( write_buffer, buffer, offset );
-                std::cout<<write_buffer<<std::endl;
                 output_file<<write_buffer;
                 offset = 0;
             }else{
-                offset += bytes_written;
+                offset = bytes_written;
             }
             if(CHECK_BIT(newly_recieved.flags,6))
                 break;
@@ -75,6 +90,7 @@ int main(int argc, char* argv[])
 
     //int server_port_number = atoi(argv[3]);
     int server_port_number = 8000;
+    std::cout<<"started"<<std::endl;
 
     //int protocol = atoi(argv[3]);
     //TODO: intialize the protocol type (stop and wait/selective repeat)

@@ -15,7 +15,9 @@ class tcp_socket {
         INITIALIZED, //waiting for handshake
         LISTENING, //starting handshake
         SYN_RECVD,
-        ESTABLISHED
+        ESTABLISHED,
+        CLOSING,//either starting hanshake orwaiting for it
+        CLOSED
     };
 
 public:
@@ -23,12 +25,17 @@ public:
             udp::socket *, transmission_protocol *protocol);
     void listen();
     void open();
+    void close();
     void send(char bytes[], int len);
-    int recieve(char bytes[],int len);
+   // int recieve(char bytes[],int len);
     void handle_received(tcp_packet &pkt, long timeout_msec);
-    int handle_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len);
+    size_t recieved();
+    void set_buffer(char *,uint32_t,uint32_t);
 
 private:
+    char *buff;
+    uint32_t offset;
+    uint32_t maxlen;
 
     void init();
     tcp_packet make_pkt();
@@ -39,9 +46,9 @@ private:
     void handle_on_listen(tcp_packet &, long);
     void handle_on_syn_recvd(tcp_packet &, long);
     void handle_on_established(tcp_packet &, long);
-
+    void handle_on_terminate(tcp_packet &,long );
+    void handle_data(tcp_packet &,long);
     void check_timeout();
-    void send_callback(const boost::system::error_code &, std::size_t, long);
 
 private:
     static uint32_t  MSS;
@@ -60,6 +67,6 @@ private:
     std::map<uint32_t, tcp_packet> seq_window;
     std::map<uint32_t, tcp_packet> ack_window;
 
-    const int CHUNK_SIZE = 500;
+    const int CHUNK_SIZE = 10;//= 500;
 };
 #endif //UDP_WORKER_THREAD_H

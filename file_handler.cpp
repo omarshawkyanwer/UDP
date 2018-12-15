@@ -27,7 +27,7 @@ int file_handler::get_next_bytes(char* stream,int len){
     memcpy(stream, data + offset, len);
     if(is_last_send(len)){
         stream[len] = '\0';
-        delete[] data;
+        //delete[] data;
     }
     offset += len;
     return len;

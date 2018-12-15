@@ -9,7 +9,7 @@ public:
     selective_repeat(udp::socket *, const udp::endpoint &);
     void send_data(std::map<uint32_t, tcp_packet>&) override;
     void handle_received_ack(tcp_packet &pkt) override;
-
+    void send_callback(const boost::system::error_code &, uint32_t);
 private:
     int window_base = 0;
     congestion_control *controller;
@@ -19,7 +19,7 @@ private:
     std::map<uint32_t, tcp_packet> sender_window;
     void handle_timeout(uint32_t);
     void send_single(uint32_t);
-    void send_callback(const boost::system::error_code &, uint32_t);
+
 };
 
 

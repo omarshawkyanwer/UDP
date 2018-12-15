@@ -22,7 +22,6 @@ public:
 
     void send_ack(uint32_t ack_no) {
         tcp_packet pkt_send = make_ack_pkt(ack_no);
-
         this->socket_->async_send_to(
                 boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
                 this->endpoint_, boost::bind(
@@ -61,6 +60,7 @@ protected:
         tcp_packet pkt{};
         pkt.src_port = this->socket_->local_endpoint().port();
         pkt.dest_port = this->endpoint_.port();
+
         pkt.ack_no = ack_no;
         SET_BIT(pkt.flags, 4); /* Set ACK */
 
@@ -78,9 +78,11 @@ protected:
     boost::asio::ip::udp::endpoint endpoint_;
 
     long timeout_msec = 5000;
-    int window_size = 1;
+    int window_size = 30;
     uint32_t next_seq_no = 0;
     std::map<uint32_t , tcp_packet>::iterator sender_window_base;
+    std::map<uint32_t , tcp_packet>::iterator sender_window_next;
+
     std::map<uint32_t, boost::asio::deadline_timer *> packet_timer_map;
     std::map<uint32_t, tcp_packet> pkts_to_send;
     std::map<uint32_t, tcp_packet> sender_window;
