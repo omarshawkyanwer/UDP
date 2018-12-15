@@ -22,10 +22,8 @@ public:
         tcp_packet pkt{};
         pkt.src_port = client_endpoint.port();
         pkt.dest_port = server_endpoint.port();
-
         strcpy(pkt.data,dummy);
-
-       new_socket->open();
+        new_socket->open();
 
 //       this->socket_.async_send_to(
 //                boost::asio::buffer(&pkt, sizeof(pkt)),

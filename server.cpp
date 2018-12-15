@@ -6,6 +6,7 @@
 #include "types.h"
 #include "tcp_socket.h"
 #include "protocols/selective_repeat.h"
+#include "protocols/stop_and_wait.h"
 #include "file_handler.h"
 #include <mutex>
 #include <thread>
@@ -41,13 +42,13 @@ private:
         if (server::open_sockets.find(key) == server::open_sockets.end()) {
             /* Create a new tcp_socket and put it in map */
             udp::endpoint client_endpoint(udp::v4(), pkt.src_port);
-            auto *protocol = new selective_repeat(&this->socket_, client_endpoint);
+           // auto *protocol = new selective_repeat(&this->socket_, client_endpoint);
+            auto *protocol = new stop_and_wait(&this->socket_, client_endpoint);
             auto *new_socket = new tcp_socket(endpoint_, client_endpoint, &this->socket_, protocol);
             server::open_sockets.insert(std::pair<std::string, tcp_socket*>(key, new_socket));
             /*
              * TODO: add the correct file name
              */
-            file_handler_  = new file_handler("../habalo.txt");
             int read_bytes = file_handler_->get_next_bytes(data_chunk,500);
             boost::thread th (boost::bind(&server::handle_client,this,new_socket));
             // server::open_sockets[key]->send(data_chunk,read_bytes);

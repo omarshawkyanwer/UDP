@@ -16,7 +16,7 @@ class tcp_socket {
         LISTENING, //starting handshake
         SYN_RECVD,
         ESTABLISHED,
-        CLOSING,//either starting hanshake orwaiting for it
+        CLOSING,//either starting hanshake or waiting for it
         CLOSED
     };
 

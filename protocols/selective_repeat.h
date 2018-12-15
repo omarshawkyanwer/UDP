@@ -10,9 +10,11 @@ public:
     void send_data(std::map<uint32_t, tcp_packet>&) override;
     void handle_received_ack(tcp_packet &pkt) override;
     void send_callback(const boost::system::error_code &, uint32_t);
-private:
+
+protected:
     int window_base = 0;
     congestion_control *controller;
+private:
     uint32_t next_seq_no = 0;
     std::map<uint32_t, boost::asio::deadline_timer *> packet_timer_map;
     std::map<uint32_t, tcp_packet> pkts_to_send;

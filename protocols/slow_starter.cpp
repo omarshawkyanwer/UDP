@@ -8,8 +8,8 @@ int slow_starter::new_ack(int curr_size){
 int slow_starter::time_out(int curr_size){
     ssthreshold/=2;
     return 1;
-
 }
+
 int slow_starter::duplicate_ack(int curr_size){
     ssthreshold/=2;
     return ssthreshold;
