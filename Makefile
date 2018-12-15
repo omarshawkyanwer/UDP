@@ -163,6 +163,120 @@ client.cpp.s:
 	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/client.cpp.s
 .PHONY : client.cpp.s
 
+file_handler.o: file_handler.cpp.o
+
+.PHONY : file_handler.o
+
+# target to build an object file
+file_handler.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/file_handler.cpp.o
+.PHONY : file_handler.cpp.o
+
+file_handler.i: file_handler.cpp.i
+
+.PHONY : file_handler.i
+
+# target to preprocess a source file
+file_handler.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/file_handler.cpp.i
+.PHONY : file_handler.cpp.i
+
+file_handler.s: file_handler.cpp.s
+
+.PHONY : file_handler.s
+
+# target to generate assembly for a file
+file_handler.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/file_handler.cpp.s
+.PHONY : file_handler.cpp.s
+
+main.o: main.cpp.o
+
+.PHONY : main.o
+
+# target to build an object file
+main.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/main.cpp.o
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/main.cpp.o
+.PHONY : main.cpp.o
+
+main.i: main.cpp.i
+
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/main.cpp.i
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/main.cpp.i
+.PHONY : main.cpp.i
+
+main.s: main.cpp.s
+
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/main.cpp.s
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/main.cpp.s
+.PHONY : main.cpp.s
+
+protocols/additive_multiplicative.o: protocols/additive_multiplicative.cpp.o
+
+.PHONY : protocols/additive_multiplicative.o
+
+# target to build an object file
+protocols/additive_multiplicative.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/additive_multiplicative.cpp.o
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/additive_multiplicative.cpp.o
+.PHONY : protocols/additive_multiplicative.cpp.o
+
+protocols/additive_multiplicative.i: protocols/additive_multiplicative.cpp.i
+
+.PHONY : protocols/additive_multiplicative.i
+
+# target to preprocess a source file
+protocols/additive_multiplicative.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/additive_multiplicative.cpp.i
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/additive_multiplicative.cpp.i
+.PHONY : protocols/additive_multiplicative.cpp.i
+
+protocols/additive_multiplicative.s: protocols/additive_multiplicative.cpp.s
+
+.PHONY : protocols/additive_multiplicative.s
+
+# target to generate assembly for a file
+protocols/additive_multiplicative.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/additive_multiplicative.cpp.s
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/additive_multiplicative.cpp.s
+.PHONY : protocols/additive_multiplicative.cpp.s
+
+protocols/fixed_window_size_controller.o: protocols/fixed_window_size_controller.cpp.o
+
+.PHONY : protocols/fixed_window_size_controller.o
+
+# target to build an object file
+protocols/fixed_window_size_controller.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/fixed_window_size_controller.cpp.o
+.PHONY : protocols/fixed_window_size_controller.cpp.o
+
+protocols/fixed_window_size_controller.i: protocols/fixed_window_size_controller.cpp.i
+
+.PHONY : protocols/fixed_window_size_controller.i
+
+# target to preprocess a source file
+protocols/fixed_window_size_controller.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/fixed_window_size_controller.cpp.i
+.PHONY : protocols/fixed_window_size_controller.cpp.i
+
+protocols/fixed_window_size_controller.s: protocols/fixed_window_size_controller.cpp.s
+
+.PHONY : protocols/fixed_window_size_controller.s
+
+# target to generate assembly for a file
+protocols/fixed_window_size_controller.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/fixed_window_size_controller.cpp.s
+.PHONY : protocols/fixed_window_size_controller.cpp.s
+
 protocols/selective_repeat.o: protocols/selective_repeat.cpp.o
 
 .PHONY : protocols/selective_repeat.o
@@ -170,6 +284,7 @@ protocols/selective_repeat.o: protocols/selective_repeat.cpp.o
 # target to build an object file
 protocols/selective_repeat.cpp.o:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/selective_repeat.cpp.o
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/selective_repeat.cpp.o
 .PHONY : protocols/selective_repeat.cpp.o
 
 protocols/selective_repeat.i: protocols/selective_repeat.cpp.i
@@ -179,6 +294,7 @@ protocols/selective_repeat.i: protocols/selective_repeat.cpp.i
 # target to preprocess a source file
 protocols/selective_repeat.cpp.i:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/selective_repeat.cpp.i
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/selective_repeat.cpp.i
 .PHONY : protocols/selective_repeat.cpp.i
 
 protocols/selective_repeat.s: protocols/selective_repeat.cpp.s
@@ -188,7 +304,65 @@ protocols/selective_repeat.s: protocols/selective_repeat.cpp.s
 # target to generate assembly for a file
 protocols/selective_repeat.cpp.s:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/selective_repeat.cpp.s
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/selective_repeat.cpp.s
 .PHONY : protocols/selective_repeat.cpp.s
+
+protocols/slow_starter.o: protocols/slow_starter.cpp.o
+
+.PHONY : protocols/slow_starter.o
+
+# target to build an object file
+protocols/slow_starter.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/slow_starter.cpp.o
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/slow_starter.cpp.o
+.PHONY : protocols/slow_starter.cpp.o
+
+protocols/slow_starter.i: protocols/slow_starter.cpp.i
+
+.PHONY : protocols/slow_starter.i
+
+# target to preprocess a source file
+protocols/slow_starter.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/slow_starter.cpp.i
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/slow_starter.cpp.i
+.PHONY : protocols/slow_starter.cpp.i
+
+protocols/slow_starter.s: protocols/slow_starter.cpp.s
+
+.PHONY : protocols/slow_starter.s
+
+# target to generate assembly for a file
+protocols/slow_starter.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/slow_starter.cpp.s
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/protocols/slow_starter.cpp.s
+.PHONY : protocols/slow_starter.cpp.s
+
+protocols/stop_and_wait.o: protocols/stop_and_wait.cpp.o
+
+.PHONY : protocols/stop_and_wait.o
+
+# target to build an object file
+protocols/stop_and_wait.cpp.o:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/stop_and_wait.cpp.o
+.PHONY : protocols/stop_and_wait.cpp.o
+
+protocols/stop_and_wait.i: protocols/stop_and_wait.cpp.i
+
+.PHONY : protocols/stop_and_wait.i
+
+# target to preprocess a source file
+protocols/stop_and_wait.cpp.i:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/stop_and_wait.cpp.i
+.PHONY : protocols/stop_and_wait.cpp.i
+
+protocols/stop_and_wait.s: protocols/stop_and_wait.cpp.s
+
+.PHONY : protocols/stop_and_wait.s
+
+# target to generate assembly for a file
+protocols/stop_and_wait.cpp.s:
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/protocols/stop_and_wait.cpp.s
+.PHONY : protocols/stop_and_wait.cpp.s
 
 server.o: server.cpp.o
 
@@ -224,6 +398,7 @@ tcp_socket.o: tcp_socket.cpp.o
 # target to build an object file
 tcp_socket.cpp.o:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tcp_socket.cpp.o
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/tcp_socket.cpp.o
 .PHONY : tcp_socket.cpp.o
 
 tcp_socket.i: tcp_socket.cpp.i
@@ -233,6 +408,7 @@ tcp_socket.i: tcp_socket.cpp.i
 # target to preprocess a source file
 tcp_socket.cpp.i:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tcp_socket.cpp.i
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/tcp_socket.cpp.i
 .PHONY : tcp_socket.cpp.i
 
 tcp_socket.s: tcp_socket.cpp.s
@@ -242,6 +418,7 @@ tcp_socket.s: tcp_socket.cpp.s
 # target to generate assembly for a file
 tcp_socket.cpp.s:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tcp_socket.cpp.s
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/tcp_socket.cpp.s
 .PHONY : tcp_socket.cpp.s
 
 types.o: types.cpp.o
@@ -287,9 +464,27 @@ help:
 	@echo "... client.o"
 	@echo "... client.i"
 	@echo "... client.s"
+	@echo "... file_handler.o"
+	@echo "... file_handler.i"
+	@echo "... file_handler.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
+	@echo "... protocols/additive_multiplicative.o"
+	@echo "... protocols/additive_multiplicative.i"
+	@echo "... protocols/additive_multiplicative.s"
+	@echo "... protocols/fixed_window_size_controller.o"
+	@echo "... protocols/fixed_window_size_controller.i"
+	@echo "... protocols/fixed_window_size_controller.s"
 	@echo "... protocols/selective_repeat.o"
 	@echo "... protocols/selective_repeat.i"
 	@echo "... protocols/selective_repeat.s"
+	@echo "... protocols/slow_starter.o"
+	@echo "... protocols/slow_starter.i"
+	@echo "... protocols/slow_starter.s"
+	@echo "... protocols/stop_and_wait.o"
+	@echo "... protocols/stop_and_wait.i"
+	@echo "... protocols/stop_and_wait.s"
 	@echo "... server.o"
 	@echo "... server.i"
 	@echo "... server.s"

@@ -34,16 +34,16 @@ void tcp_socket::listen() {
         return;
     tcp_socket::cur_state = LISTENING;
 }
+
 void tcp_socket::close() {
-    connection_state  next = CLOSING;
+    connection_state next = CLOSING;
     if (tcp_socket::cur_state != ESTABLISHED)
-        // return;
         next = ESTABLISHED;
+
     tcp_packet pkt_send = tcp_socket::make_pkt();
     /* Set SYN bit at pos 1 */
     SET_BIT(pkt_send.flags, 1);
 
-//    tcp_socket::last_pkt = pkt_send;
     tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
                                        tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
                     &tcp_socket::state_transition_callback, this,
@@ -51,16 +51,15 @@ void tcp_socket::close() {
                     boost::asio::placeholders::bytes_transferred(),
                     next, -1)));
 }
+
 void tcp_socket::open() {
     connection_state  next = SYN_RECVD;
     if (tcp_socket::cur_state != INITIALIZED)
        // return;
         next = ESTABLISHED;
     tcp_packet pkt_send = tcp_socket::make_pkt();
-    /* Set SYN bit at pos 1 */
-    SET_BIT(pkt_send.flags, 1);
+    SET_BIT(pkt_send.flags, 1); /* Set SYN bit at pos 1 */
 
-//    tcp_socket::last_pkt = pkt_send;
     tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
                                        tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
                     &tcp_socket::state_transition_callback, this,
@@ -79,8 +78,8 @@ void tcp_socket::send(char bytes[], int len) {
         pkt.seq_no = seq_no;
         std::memcpy(pkt.data, bytes + seq_no, (size_t) CHUNK_SIZE);
         pkts_to_send[seq_no] = pkt;
-        if(seq_no+CHUNK_SIZE >=len)
-            SET_BIT(pkts_to_send[seq_no].flags,6);
+        if (seq_no + CHUNK_SIZE >= len)
+            SET_BIT(pkts_to_send[seq_no].flags, 6); /* Set Final packet flag */
 
         seq_no += CHUNK_SIZE;
     }
@@ -95,10 +94,12 @@ tcp_packet tcp_socket::make_pkt() {
     pkt.dest_port = tcp_socket::endpoint_.port();
     return pkt;
 }
-size_t tcp_socket::recieved(){
+
+size_t tcp_socket::received(){
     return offset;
 }
-void tcp_socket::set_buffer(char *buf,uint32_t offset ,uint32_t maxlen) {
+
+void tcp_socket::set_buffer(char *buf, uint32_t offset, uint32_t maxlen) {
     tcp_socket::buff = buf;
     tcp_socket::offset = offset;
     tcp_socket::maxlen = maxlen;
@@ -115,6 +116,9 @@ void tcp_socket::handle_received(tcp_packet &pkt, long timeout_msec) {
             break;
         case SYN_RECVD:
             tcp_socket::handle_on_syn_recvd(pkt, timeout_msec);
+            break;
+        case SYN_SENT:
+            tcp_socket::handle_on_syn_sent(pkt, timeout_msec);
             break;
         case ESTABLISHED:
             tcp_socket::handle_on_established(pkt, timeout_msec);
@@ -156,32 +160,43 @@ void tcp_socket::handle_on_listen(tcp_packet &pkt, long timeout_msec) {
 void tcp_socket::handle_on_syn_recvd(tcp_packet &pkt, long) {
     /* Check for ack flag at position 4 */
     bool ack = CHECK_BIT(pkt.flags, 4) != 0;
-    bool syn = CHECK_BIT(pkt.flags,1) !=0;
-    if(syn)
-        tcp_socket::protocol_->send_ack(0);
     if (!ack)
         return;
 
     tcp_socket::cur_state = ESTABLISHED;
 }
 
+void tcp_socket::handle_on_syn_sent(tcp_packet &pkt, long timeout_msec) {
+    bool syn = CHECK_BIT(pkt.flags, 1) != 0;
+    bool ack = CHECK_BIT(pkt.flags, 4) != 0;
+    if (!syn || !ack)
+        return;
+
+    tcp_packet pkt_send = make_pkt();
+    SET_BIT(pkt_send.flags, 4); /* Set ACK flag */
+
+    tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
+            tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
+                    &tcp_socket::state_transition_callback, this,
+                    boost::asio::placeholders::error(),
+                    boost::asio::placeholders::bytes_transferred(),
+                    ESTABLISHED, timeout_msec)));
+}
+
 void tcp_socket::handle_on_established(tcp_packet &pkt, long timeout_msec) {
     /* Check for ack flag at position 4 */
     bool ack = CHECK_BIT(pkt.flags, 4) != 0;
-    bool syn = CHECK_BIT(pkt.flags,1) !=0;
-    if(syn) {
+    bool syn = CHECK_BIT(pkt.flags, 1) != 0;
+    if (syn)
         tcp_socket::handle_on_terminate(pkt, timeout_msec);
-    }
     else if (ack)
         tcp_socket::protocol_->handle_received_ack(pkt);
-    else {
-            tcp_socket::handle_data(pkt,timeout_msec);
-        //tcp_socket::protocol_->send_ack(pkt.seq_no);
-    }
-//        tcp_socket::protocol_->handle_received_data(pkt);
+    else
+        tcp_socket::handle_data(pkt, timeout_msec);
 }
+
 void tcp_socket::handle_on_terminate(tcp_packet &pkt,long timeout_msec) {
-    connection_state  next = (tcp_socket::cur_state == CLOSING)?CLOSED:CLOSING;
+    connection_state  next = (tcp_socket::cur_state == CLOSING) ? CLOSED : CLOSING;
     tcp_packet pkt_send = tcp_socket::make_pkt();
     SET_BIT(pkt_send.flags, 4); /* Set ACK flag */
 
@@ -194,11 +209,15 @@ void tcp_socket::handle_on_terminate(tcp_packet &pkt,long timeout_msec) {
                     boost::asio::placeholders::error(),
                     boost::asio::placeholders::bytes_transferred(),
                     next, timeout_msec)));
+}
 
+void tcp_socket::handle_data(tcp_packet &pkt, long) {
+    tcp_socket::offset +=
+            tcp_socket::protocol_->handle_received_data(pkt,
+                    tcp_socket::buff, tcp_socket::offset,
+                    tcp_socket::maxlen);
 }
-void tcp_socket::handle_data(tcp_packet &pkt,long timeout_ms) {
-    offset+=tcp_socket::protocol_->handle_received_data(pkt,tcp_socket::buff,tcp_socket::offset,tcp_socket::maxlen);
-}
+
 void tcp_socket::check_timeout() {
     if (timer_.expires_at() <= deadline_timer::traits_type::now()) {
         // socket_.cancel();

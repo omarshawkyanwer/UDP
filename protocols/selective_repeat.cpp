@@ -23,13 +23,12 @@ void selective_repeat::send_data(std::map<uint32_t, tcp_packet> &pkts) {
         selective_repeat::send_single(it->first);
         it++;
         sender_window_next++;
-        pak_len = strlen(it->second.data);
+        pak_len = static_cast<int>(strlen(it->second.data));
         count-=pak_len;
     }
 
     while (selective_repeat::sender_window_base != selective_repeat::pkts_to_send.end())
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    return;
 }
 
 void selective_repeat::send_single(uint32_t seq_no) {
@@ -58,8 +57,8 @@ void selective_repeat::send_callback(const boost::system::error_code &ec,
         selective_repeat::packet_timer_map[seq_no] = ack_timer;
     }
     auto *timer = selective_repeat::packet_timer_map[seq_no];
-   // timer->expires_from_now(boost::posix_time::milliseconds(selective_repeat::timeout_msec));
-    //timer->async_wait(boost::bind(&selective_repeat::handle_timeout, this, seq_no));
+    timer->expires_from_now(boost::posix_time::milliseconds(selective_repeat::timeout_msec));
+    timer->async_wait(boost::bind(&selective_repeat::handle_timeout, this, seq_no));
 }
 
 void selective_repeat::handle_timeout(uint32_t seq_no) {
@@ -73,6 +72,13 @@ void selective_repeat::handle_timeout(uint32_t seq_no) {
 void selective_repeat::handle_received_ack(tcp_packet &pkt) {
     tcp_packet pkt_acked = selective_repeat::sender_window[pkt.ack_no];
     selective_repeat::sender_window.erase(pkt_acked.seq_no);
+
+    /* Reset and delete timer */
+    auto timer = selective_repeat::packet_timer_map[pkt.ack_no];
+    selective_repeat::packet_timer_map.erase(pkt.ack_no);
+    timer->cancel();
+    delete timer;
+
    // window_size = controller->new_ack(window_size);
     while (selective_repeat::sender_window_base != selective_repeat::pkts_to_send.end() &&
            selective_repeat::sender_window.find(selective_repeat::sender_window_base->second.seq_no)

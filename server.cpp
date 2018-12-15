@@ -18,10 +18,6 @@ public:
     explicit server(const udp::endpoint &listen_endpoint) :
             socket_(io_service_, listen_endpoint) {
         server::endpoint_ = listen_endpoint;
-        data_chunk = new char[1000];
-    }
-    ~server(){
-        delete [] data_chunk;
     }
 
     void start() {
@@ -29,9 +25,7 @@ public:
             tcp_packet pkt_recv{};
             server::socket_.receive(boost::asio::buffer(&pkt_recv, sizeof(pkt_recv)));
             print_pkt(pkt_recv);
-
             handle_packet(pkt_recv);
-
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
@@ -42,30 +36,24 @@ private:
         if (server::open_sockets.find(key) == server::open_sockets.end()) {
             /* Create a new tcp_socket and put it in map */
             udp::endpoint client_endpoint(udp::v4(), pkt.src_port);
-           // auto *protocol = new selective_repeat(&this->socket_, client_endpoint);
-            auto *protocol = new stop_and_wait(&this->socket_, client_endpoint);
+//            auto *protocol = new stop_and_wait(&this->socket_, client_endpoint);
+            auto *protocol = new selective_repeat(&this->socket_, client_endpoint);
             auto *new_socket = new tcp_socket(endpoint_, client_endpoint, &this->socket_, protocol);
             server::open_sockets.insert(std::pair<std::string, tcp_socket*>(key, new_socket));
-            /*
-             * TODO: add the correct file name
-             */
-            int read_bytes = file_handler_->get_next_bytes(data_chunk,500);
-            boost::thread th (boost::bind(&server::handle_client,this,new_socket));
-            // server::open_sockets[key]->send(data_chunk,read_bytes);
+            /* TODO: Resolve request to get file name */
+            boost::thread th(boost::bind(&server::handle_client, this, new_socket));
             th.detach();
-
         }
         server::open_sockets[key]->handle_received(pkt, server::timeout);
-
     }
+
     void handle_client(tcp_socket *socket) {
-        char data_chunk[500];
-        file_handler_ = new file_handler("../habalo.txt");
+        char data_chunk[FILE_CHUNK_SIZE + 1];
+        file_handler fh("../habalo.txt");
         int read_bytes;
-        while (read_bytes = file_handler_->get_next_bytes(data_chunk, 500)) {
+        while (read_bytes = fh.get_next_bytes(data_chunk, FILE_CHUNK_SIZE))
             socket->send(data_chunk, read_bytes);
-        }
-        delete file_handler_;
+
         socket->close();
     }
 
@@ -73,11 +61,10 @@ private:
     udp::endpoint endpoint_;
     boost::asio::io_service io_service_;
     udp::socket socket_;
-    file_handler* file_handler_;
     std::map<std::string, tcp_socket *> open_sockets;
-    std::mutex socket_map_mtx;
-    char* data_chunk;
     long timeout = 5000l;
+
+    const int FILE_CHUNK_SIZE = 500;
 };
 
 int main(int argc, char* argv[]) {

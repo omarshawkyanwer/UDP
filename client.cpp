@@ -9,7 +9,6 @@
 
 using boost::asio::ip::udp;
 
-
 class client {
 public:
     explicit client(const udp::endpoint &client_endpoint,const udp::endpoint &server_endpoint) :
@@ -18,35 +17,24 @@ public:
         client::server_endpoint_ = server_endpoint;
         protocol = new selective_repeat(&this->socket_, this->server_endpoint_);
         new_socket = new tcp_socket(client_endpoint_, server_endpoint_, &this->socket_, protocol);
-        char dummy[500] = "dumm";
-        tcp_packet pkt{};
-        pkt.src_port = client_endpoint.port();
-        pkt.dest_port = server_endpoint.port();
-        strcpy(pkt.data,dummy);
+
         new_socket->open();
-
-//       this->socket_.async_send_to(
-//                boost::asio::buffer(&pkt, sizeof(pkt)),
-//                server_endpoint, boost::bind(
-//                        &selective_repeat::send_callback, protocol,
-//                        boost::asio::placeholders::error(), 0));
     }
-    //how to get ack number from recieved data packet
 
-    void handle_recieving_file(char* file_path){
-        char* buffer = new char[10*1024];
+    void handle_receiving_data(char *file_path){
+        char* buffer = new char[BUFF_SIZE];
         uint32_t offset = 0;
-        new_socket->set_buffer(buffer,offset,10*1024);
+        new_socket->set_buffer(buffer, offset, BUFF_SIZE);
 
         std::ofstream output_file(file_path);
-        while(true){
-            tcp_packet newly_recieved;
+        while (true) {
+            tcp_packet pkt_received{};
 
-            socket_.receive(boost::asio::buffer(&newly_recieved, sizeof(newly_recieved)));
-            new_socket->handle_received(newly_recieved,5000l);
-             uint32_t bytes_written = new_socket->recieved();
+            socket_.receive(boost::asio::buffer(&pkt_received, sizeof(pkt_received)));
+            new_socket->handle_received(pkt_received, 5000l);
+            size_t bytes_written = new_socket->received();
 
-            if(bytes_written <= 0 || CHECK_BIT(newly_recieved.flags,6)){
+            if (bytes_written <= 0 || CHECK_BIT(pkt_received.flags, 6)) {
                 offset += bytes_written;
                 char write_buffer[offset];
                 memcpy( write_buffer, buffer, offset );
@@ -55,7 +43,7 @@ public:
             }else{
                 offset = bytes_written;
             }
-            if(CHECK_BIT(newly_recieved.flags,6))
+            if(CHECK_BIT(pkt_received.flags,6))
                 break;
         }
         output_file.close();
@@ -67,6 +55,8 @@ private:
     transmission_protocol* protocol;
     udp::socket socket_;
     tcp_socket* new_socket;
+
+    const int BUFF_SIZE = 10 * 1024;
 };
 
 int main(int argc, char* argv[])
@@ -88,13 +78,13 @@ int main(int argc, char* argv[])
 
     //int server_port_number = atoi(argv[3]);
     int server_port_number = 8000;
-    std::cout<<"started"<<std::endl;
+    std::cout << "started" << std::endl;
 
     //int protocol = atoi(argv[3]);
     //TODO: intialize the protocol type (stop and wait/selective repeat)
     udp::endpoint client_endpoint(udp::v4(), client_port_number);
     udp::endpoint server_endpoint(udp::v4(), server_port_number);
     client c(client_endpoint,server_endpoint);
-    c.handle_recieving_file("test.txt");
+    c.handle_receiving_data("test.txt");
     return 0;
 }

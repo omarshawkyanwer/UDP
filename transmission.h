@@ -6,6 +6,7 @@
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
+#include <boost/asio/placeholders.hpp>`
 #include <set>
 #include "types.h"
 using namespace boost::asio::ip;
@@ -27,7 +28,6 @@ public:
                 this->endpoint_, boost::bind(
                         &transmission_protocol::send_ack_callback, this,
                         boost::asio::placeholders::error(), ack_no));
-      //
     }
 
     size_t handle_received_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len) {
