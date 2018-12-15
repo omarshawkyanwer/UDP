@@ -15,12 +15,17 @@ void selective_repeat::send_data(std::map<uint32_t, tcp_packet> &pkts) {
     selective_repeat::pkts_to_send.clear();
     selective_repeat::pkts_to_send.insert(pkts.begin(), pkts.end());
     selective_repeat::sender_window_base = selective_repeat::sender_window_next = selective_repeat::pkts_to_send.begin();
-
+    /*
+     * the time at which it starts sending
+     * */
+    selective_repeat::sending_start_time_ = clock();
     int count = selective_repeat::window_size;
     auto it = selective_repeat::pkts_to_send.begin();
     int pak_len = 0;
     while (count > 0) {
         selective_repeat::send_single(it->first);
+        selective_repeat::window_size_at_time_t.push_back(std::make_pair((clock() - sending_start_time_) / CLOCKS_PER_SEC
+                , window_size));
         it++;
         sender_window_next++;
         pak_len = static_cast<int>(strlen(it->second.data));
@@ -29,6 +34,9 @@ void selective_repeat::send_data(std::map<uint32_t, tcp_packet> &pkts) {
 
     while (selective_repeat::sender_window_base != selective_repeat::pkts_to_send.end())
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    selective_repeat::sending_end_time_ = clock();
+    selective_repeat::total_sending_duration = (selective_repeat::sending_end_time_ -
+            selective_repeat::sending_start_time_) / CLOCKS_PER_SEC;
 }
 
 void selective_repeat::send_single(uint32_t seq_no) {
