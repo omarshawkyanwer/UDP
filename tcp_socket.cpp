@@ -53,10 +53,8 @@ void tcp_socket::close() {
 }
 
 void tcp_socket::open() {
-    connection_state  next = SYN_RECVD;
     if (tcp_socket::cur_state != INITIALIZED)
-       // return;
-        next = ESTABLISHED;
+        return;
     tcp_packet pkt_send = tcp_socket::make_pkt();
     SET_BIT(pkt_send.flags, 1); /* Set SYN bit at pos 1 */
 
@@ -65,7 +63,7 @@ void tcp_socket::open() {
                     &tcp_socket::state_transition_callback, this,
                     boost::asio::placeholders::error(),
                     boost::asio::placeholders::bytes_transferred(),
-                    next, -1)));
+                    SYN_SENT, -1)));
 }
 
 void tcp_socket::send(char bytes[], int len) {
@@ -220,7 +218,6 @@ void tcp_socket::handle_data(tcp_packet &pkt, long) {
 
 void tcp_socket::check_timeout() {
     if (timer_.expires_at() <= deadline_timer::traits_type::now()) {
-        // socket_.cancel();
         std::cout << "Timeout reached!" << std::endl;
         timer_.expires_at(boost::posix_time::pos_infin);
     }

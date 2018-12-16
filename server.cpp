@@ -37,19 +37,21 @@ private:
             /* Create a new tcp_socket and put it in map */
             udp::endpoint client_endpoint(udp::v4(), pkt.src_port);
 //            auto *protocol = new stop_and_wait(&this->socket_, client_endpoint);
-            auto *protocol = new selective_repeat(&this->socket_, client_endpoint);
-            auto *new_socket = new tcp_socket(endpoint_, client_endpoint, &this->socket_, protocol);
+            auto protocol = new selective_repeat(&this->socket_, client_endpoint);
+            auto new_socket = new tcp_socket(endpoint_, client_endpoint, &this->socket_, protocol);
             server::open_sockets.insert(std::pair<std::string, tcp_socket*>(key, new_socket));
             /* TODO: Resolve request to get file name */
-            boost::thread th(boost::bind(&server::handle_client, this, new_socket));
+            boost::thread th(boost::bind(&server::handle_client, this, key));
             th.detach();
         }
+        server::open_sockets[key]->listen();
         server::open_sockets[key]->handle_received(pkt, server::timeout);
     }
 
-    void handle_client(tcp_socket *socket) {
+    void handle_client(std::string &socket_key) {
+        tcp_socket *socket = server::open_sockets[socket_key];
         char data_chunk[FILE_CHUNK_SIZE + 1];
-        file_handler fh("../habalo.txt");
+        file_handler fh("habalo.txt");
         int read_bytes;
         while (read_bytes = fh.get_next_bytes(data_chunk, FILE_CHUNK_SIZE))
             socket->send(data_chunk, read_bytes);

@@ -6,10 +6,7 @@
 
 #include <cstdint>
 #include <iostream>
-struct tcp_packet *from_str(char *str);
-struct tcp_packet encaps(char *,int);
-std::size_t from_pkt(char *str, const tcp_packet &pkt);
-
+#include <bitset>
 
 struct tcp_packet {
     /* Headers */
@@ -28,15 +25,13 @@ struct tcp_packet {
 
 static void print_pkt(tcp_packet pkt) {
     std::cout << "------ Packet: ------\n";
-    std::cout << pkt.src_port << std::endl;
-    std::cout << pkt.dest_port << std::endl;
-    std::cout << pkt.seq_no << std::endl;
-    std::cout << pkt.ack_no << std::endl;
-    std::cout << pkt.flags << std::endl;
-    std::cout << pkt.urg_data_ptr << std::endl;
-    std::cout << pkt.checksum << std::endl;
-    std::cout << pkt.recvw << std::endl;
-    std::cout << pkt.data << std::endl;
+    std::cout << "src port: " << pkt.src_port << std::endl;
+    std::cout << "dest port: " << pkt.dest_port << std::endl;
+    std::cout << "seq_no: " << pkt.seq_no << std::endl;
+    std::cout << "ack_no: " << pkt.ack_no << std::endl;
+    std::cout << "flags: " << std::bitset<8>(pkt.flags).to_string() << std::endl;
+//    std::cout << "chksum: " << pkt.checksum << std::endl;
+    std::cout << "data: " << pkt.data << std::endl;
 }
 
 #endif //RELIABLE_DATA_TRANSFER_TYPES_H

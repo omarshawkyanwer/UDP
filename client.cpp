@@ -31,6 +31,8 @@ public:
             tcp_packet pkt_received{};
 
             socket_.receive(boost::asio::buffer(&pkt_received, sizeof(pkt_received)));
+            print_pkt(pkt_received);
+            
             new_socket->handle_received(pkt_received, 5000l);
             size_t bytes_written = new_socket->received();
 

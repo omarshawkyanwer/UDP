@@ -7,9 +7,6 @@
 #include <vector>
 #include <utility>
 
-
-
-
 class selective_repeat : public transmission_protocol {
 public:
     selective_repeat(udp::socket *, const udp::endpoint &);
