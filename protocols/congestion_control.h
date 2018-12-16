@@ -4,6 +4,8 @@
 
 #ifndef UDP_CONGESTION_CONTROL_H
 #define UDP_CONGESTION_CONTROL_H
+
+#include "../types.h"
 class congestion_control {
 public:
     virtual  int new_ack(int curr_size)=0;

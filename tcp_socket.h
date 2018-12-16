@@ -8,10 +8,11 @@
 #include "transmission.h"
 #include <iostream>
 
-using namespace boost::asio::ip;
 
+using namespace boost::asio::ip;
+class client;
 class tcp_socket {
-    enum connection_state {
+public:    enum connection_state {
         INITIALIZED,     // Waiting for handshake
         LISTENING,       // Starting handshake
         SYN_RECVD,
@@ -31,6 +32,8 @@ public:
     void handle_received(tcp_packet &pkt, long timeout_msec);
     size_t received();
     void set_buffer(char *, uint32_t, uint32_t);
+   // friend void client::handle_receiving_data(char *);
+   connection_state cur_state;
 
 private:
 
@@ -55,12 +58,10 @@ private:
     boost::asio::io_service::strand strand_;
     boost::asio::deadline_timer timer_;
     transmission_protocol *protocol_;
-    connection_state cur_state;
 
     char *buff;
     uint32_t offset;
     uint32_t maxlen;
 
-    const int CHUNK_SIZE = 10;//= 500;
 };
 #endif //UDP_WORKER_THREAD_H

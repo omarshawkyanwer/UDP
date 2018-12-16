@@ -31,6 +31,7 @@ private:
     std::map<uint32_t, tcp_packet> sender_window;
     void handle_timeout(uint32_t);
     void send_single(uint32_t);
+    void resend(uint32_t);
 
 
 };

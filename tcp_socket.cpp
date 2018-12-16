@@ -103,6 +103,7 @@ void tcp_socket::set_buffer(char *buf, uint32_t offset, uint32_t maxlen) {
     tcp_socket::buff = buf;
     tcp_socket::offset = offset;
     tcp_socket::maxlen = maxlen;
+    tcp_socket::protocol_->reset_recv();
 }
 
 void tcp_socket::handle_received(tcp_packet &pkt, long timeout_msec) {
@@ -131,11 +132,13 @@ void tcp_socket::handle_received(tcp_packet &pkt, long timeout_msec) {
 
 void tcp_socket::state_transition_callback(const boost::system::error_code &ec,
                                            std::size_t, enum connection_state next_state, long timeout_msec) {
-    if (timeout_msec != -1)
+    if (timeout_msec != -1  && next_state != CLOSED && next_state != CLOSING)
         tcp_socket::timer_.expires_from_now(boost::posix_time::milliseconds(timeout_msec));
     tcp_socket::cur_state = next_state;
-    if(next_state == CLOSED)
-        std::cout<<"Connection closed"<<std::endl;
+    if(next_state == CLOSED) {
+        std::cout << "Connection closed" << std::endl;
+        tcp_socket::timer_.cancel();
+    }
 }
 
 void tcp_socket::handle_on_listen(tcp_packet &pkt, long timeout_msec) {
@@ -158,11 +161,15 @@ void tcp_socket::handle_on_listen(tcp_packet &pkt, long timeout_msec) {
 }
 
 void tcp_socket::handle_on_syn_recvd(tcp_packet &pkt, long) {
-    /* Check for ack flag at position 4 */
+    /* Check for ack flag at position 4 */ // server side of hanshake
     bool ack = CHECK_BIT(pkt.flags, 4) != 0;
+    /*check for both syn and ack*/ //clientside of hanshake
+    bool syn = CHECK_BIT(pkt.flags,1) !=0;
+
     if (!ack)
         return;
-
+    if(syn)
+        tcp_socket::protocol_->send_ack(0);
     tcp_socket::cur_state = ESTABLISHED;
 }
 
@@ -203,12 +210,13 @@ void tcp_socket::handle_on_terminate(tcp_packet &pkt,long timeout_msec) {
     if(tcp_socket::cur_state != CLOSING)
         SET_BIT(pkt_send.flags, 1); /* Set SYN flag */
 
-    tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
+        tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
                                        tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
                     &tcp_socket::state_transition_callback, this,
                     boost::asio::placeholders::error(),
                     boost::asio::placeholders::bytes_transferred(),
                     next, timeout_msec)));
+
 }
 
 void tcp_socket::handle_data(tcp_packet &pkt, long) {

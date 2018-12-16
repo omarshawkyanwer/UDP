@@ -23,7 +23,13 @@ public:
     virtual void send_data(std::map<uint32_t, tcp_packet>&) = 0;
     virtual void handle_received_ack(tcp_packet &) = 0;
 
+    void reset_recv(){
+        transmission_protocol::recv_window_base = 0;
+        transmission_protocol::recv_window.clear();
+        eoc_ = false;
+    }
     void send_ack(uint32_t ack_no) {
+        std::cout<<"acking "<<ack_no<<std::endl;
         tcp_packet pkt_send = make_ack_pkt(ack_no);
         this->socket_->async_send_to(
                 boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
@@ -31,8 +37,13 @@ public:
                         &transmission_protocol::send_ack_callback, this,
                         boost::asio::placeholders::error(), ack_no));
     }
-
+    bool eoc() { //end of chunk
+        return eoc_;
+    }
     size_t handle_received_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len) {
+        int random = rand()%100;
+        if(random <10)
+            return 0;
         if (pkt.seq_no < recv_window_base) {
             send_ack(pkt.seq_no);
             return 0;
@@ -51,10 +62,13 @@ public:
             if(offset + data_len > max_len)
                 break;
             std::memcpy(buf + offset, recv_pkt.data, data_len);
+            //std::cout<<"writing in file "<<recv_pkt.seq_no<<std::endl;
             offset+=data_len;
             written += data_len;
             recv_window_base += data_len;
             recv_window.erase(recv_window.begin());
+            if(CHECK_BIT(recv_pkt.flags,6))
+                eoc_ = true;
         }
         return written;
     }
@@ -77,11 +91,13 @@ protected:
     }
 
 protected:
+    bool eoc_;
     boost::asio::ip::udp::socket *socket_;
     boost::asio::ip::udp::endpoint endpoint_;
 
     long timeout_msec = 5000;
-    int window_size = 30;
+    size_t window_size = 30;
+    size_t sent_size ;
     uint32_t next_seq_no = 0;
     std::map<uint32_t , tcp_packet>::iterator sender_window_base;
     std::map<uint32_t , tcp_packet>::iterator sender_window_next;

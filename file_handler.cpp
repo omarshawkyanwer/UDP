@@ -17,7 +17,7 @@ void file_handler::read_file(std::string file_name){
     is.seekg(0,std::ios::end);
     total_len = is.tellg();
     is.seekg(0,std::ios::beg);
-    data = new char[10000];
+    data = new char[((total_len > 0)?total_len:1)];
     is.read(data,total_len);
     is.close();
 }
@@ -27,6 +27,7 @@ int file_handler::get_next_bytes(char* stream,int len){
     memcpy(stream, data + offset, len);
     if(is_last_send(len)){
         stream[len] = '\0';
+       // len++;
         //delete[] data;
     }
     offset += len;

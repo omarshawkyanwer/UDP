@@ -6,6 +6,9 @@
 #include <fstream>
 #include "tcp_socket.h"
 #include "protocols/selective_repeat.h"
+#include "protocols/stop_and_wait.h"
+
+#include <thread>
 
 using boost::asio::ip::udp;
 
@@ -15,7 +18,8 @@ public:
             socket_(io_service_, client_endpoint) {
         client::client_endpoint_ = client_endpoint;
         client::server_endpoint_ = server_endpoint;
-        protocol = new selective_repeat(&this->socket_, this->server_endpoint_);
+       // protocol = new stop_and_wait (&this->socket_, this->server_endpoint_);
+        protocol = new selective_repeat (&this->socket_, this->server_endpoint_);
         new_socket = new tcp_socket(client_endpoint_, server_endpoint_, &this->socket_, protocol);
 
         new_socket->open();
@@ -29,21 +33,37 @@ public:
         std::ofstream output_file(file_path);
         while (true) {
             tcp_packet pkt_received{};
+            if(new_socket->cur_state == tcp_socket::connection_state::CLOSED ||
+                    new_socket->cur_state == tcp_socket::connection_state::CLOSING
+                    )
+            {
+                break;
 
-            socket_.receive(boost::asio::buffer(&pkt_received, sizeof(pkt_received)));
+            }
+                 socket_.receive(boost::asio::buffer(&pkt_received, sizeof(pkt_received)));
+
             new_socket->handle_received(pkt_received, 5000l);
             size_t bytes_written = new_socket->received();
 
-            if (bytes_written <= 0 || CHECK_BIT(pkt_received.flags, 6)) {
+            if (protocol->eoc()) {
                 offset += bytes_written;
                 char write_buffer[offset];
                 memcpy( write_buffer, buffer, offset );
                 output_file<<write_buffer;
                 offset = 0;
+
+                new_socket->set_buffer(buffer, offset, BUFF_SIZE);
+             //   std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+
+                std::cout<<"chunk recieved "<<bytes_written <<std::endl;
+
             }else{
                 offset = bytes_written;
+
             }
-            if(CHECK_BIT(pkt_received.flags,6))
+
+            if(new_socket->cur_state == tcp_socket::connection_state::CLOSED ||
+                    new_socket->cur_state == tcp_socket::connection_state::CLOSING)
                 break;
         }
         output_file.close();
@@ -86,5 +106,6 @@ int main(int argc, char* argv[])
     udp::endpoint server_endpoint(udp::v4(), server_port_number);
     client c(client_endpoint,server_endpoint);
     c.handle_receiving_data("test.txt");
+
     return 0;
 }

@@ -3,12 +3,15 @@
 #define PACKET_LENGTH 500
 #define CHECK_BIT(var, pos) ((var) & (1<<(pos)))
 #define SET_BIT(var, pos) ((var) |= (1<<(pos)))
+#define CHUNK_SIZE 10
 
 #include <cstdint>
 #include <iostream>
 struct tcp_packet *from_str(char *str);
 struct tcp_packet encaps(char *,int);
 std::size_t from_pkt(char *str, const tcp_packet &pkt);
+
+
 
 
 struct tcp_packet {
