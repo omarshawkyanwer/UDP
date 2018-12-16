@@ -13,7 +13,6 @@ struct tcp_packet {
     uint16_t src_port, dest_port;
     uint32_t seq_no;
     uint32_t ack_no;
-    uint32_t data_size;
 
     uint16_t flags;                 // headlen|unused|U|A|P|R|S|F
     uint16_t recvw;                 // receive window (#bytes recv willing to accept)

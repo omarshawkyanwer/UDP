@@ -20,7 +20,7 @@ tcp_socket::tcp_socket(const udp::endpoint &listening_endpoint, const udp::endpo
 }
 
 void tcp_socket::init() {
-    tcp_socket::cur_state = INITIALIZED; //TODO: change to INITIALIZED
+    tcp_socket::cur_state = INITIALIZED;
 
     tcp_socket::timer_.expires_from_now(boost::posix_time::pos_infin);
     tcp_socket::check_timeout();
@@ -59,7 +59,7 @@ void tcp_socket::open() {
     SET_BIT(pkt_send.flags, 1); /* Set SYN bit at pos 1 */
 
     tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
-                                       tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
+            tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
                     &tcp_socket::state_transition_callback, this,
                     boost::asio::placeholders::error(),
                     boost::asio::placeholders::bytes_transferred(),
@@ -82,7 +82,6 @@ void tcp_socket::send(char bytes[], int len) {
         seq_no += CHUNK_SIZE;
     }
 
-
     tcp_socket::protocol_->send_data(pkts_to_send);
 }
 
@@ -104,6 +103,7 @@ void tcp_socket::set_buffer(char *buf, uint32_t offset, uint32_t maxlen) {
 }
 
 void tcp_socket::handle_received(tcp_packet &pkt, long timeout_msec) {
+    std::cout << "Current state: " << tcp_socket::cur_state << std::endl;
     switch (tcp_socket::cur_state) {
         case INITIALIZED:
             tcp_socket::cur_state = LISTENING;
@@ -132,11 +132,9 @@ void tcp_socket::state_transition_callback(const boost::system::error_code &ec,
     if (timeout_msec != -1)
         tcp_socket::timer_.expires_from_now(boost::posix_time::milliseconds(timeout_msec));
     tcp_socket::cur_state = next_state;
-    if(next_state == CLOSED)
-        std::cout<<"Connection closed"<<std::endl;
 }
 
-void tcp_socket::handle_on_listen(tcp_packet &pkt, long timeout_msec) {
+void tcp_socket::handle_on_listen(tcp_packet &pkt, long) {
     /* Check for SYN flag at position 1 */
     bool syn = CHECK_BIT(pkt.flags, 1) != 0;
     if (!syn)
@@ -152,7 +150,7 @@ void tcp_socket::handle_on_listen(tcp_packet &pkt, long timeout_msec) {
                     &tcp_socket::state_transition_callback, this,
                     boost::asio::placeholders::error(),
                     boost::asio::placeholders::bytes_transferred(),
-                    SYN_RECVD, timeout_msec)));
+                    SYN_RECVD, -1)));
 }
 
 void tcp_socket::handle_on_syn_recvd(tcp_packet &pkt, long) {
@@ -164,7 +162,7 @@ void tcp_socket::handle_on_syn_recvd(tcp_packet &pkt, long) {
     tcp_socket::cur_state = ESTABLISHED;
 }
 
-void tcp_socket::handle_on_syn_sent(tcp_packet &pkt, long timeout_msec) {
+void tcp_socket::handle_on_syn_sent(tcp_packet &pkt, long) {
     bool syn = CHECK_BIT(pkt.flags, 1) != 0;
     bool ack = CHECK_BIT(pkt.flags, 4) != 0;
     if (!syn || !ack)
@@ -178,7 +176,7 @@ void tcp_socket::handle_on_syn_sent(tcp_packet &pkt, long timeout_msec) {
                     &tcp_socket::state_transition_callback, this,
                     boost::asio::placeholders::error(),
                     boost::asio::placeholders::bytes_transferred(),
-                    ESTABLISHED, timeout_msec)));
+                    ESTABLISHED, -1)));
 }
 
 void tcp_socket::handle_on_established(tcp_packet &pkt, long timeout_msec) {

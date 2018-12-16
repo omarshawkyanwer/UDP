@@ -53,8 +53,10 @@ private:
         char data_chunk[FILE_CHUNK_SIZE + 1];
         file_handler fh("habalo.txt");
         int read_bytes;
-        while (read_bytes = fh.get_next_bytes(data_chunk, FILE_CHUNK_SIZE))
+        while (read_bytes = fh.get_next_bytes(data_chunk, FILE_CHUNK_SIZE)) {
+            std::cout << "Data chunk to send: " << data_chunk << std::endl;
             socket->send(data_chunk, read_bytes);
+        }
 
         socket->close();
     }

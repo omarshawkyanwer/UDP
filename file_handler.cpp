@@ -24,7 +24,7 @@ void file_handler::read_file(std::string file_name){
 }
 
 int file_handler::get_next_bytes(char* stream, int len){
-    len = std::min(len,total_len - offset);
+    len = std::min(len, total_len - offset);
     memcpy(stream, data + offset, len);
     if(is_last_send(len)){
         stream[len] = '\0';

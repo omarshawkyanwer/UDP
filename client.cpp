@@ -37,12 +37,10 @@ public:
             size_t bytes_written = new_socket->received();
 
             if (bytes_written <= 0 || CHECK_BIT(pkt_received.flags, 6)) {
-                offset += bytes_written;
-                char write_buffer[offset];
-                memcpy( write_buffer, buffer, offset );
-                output_file<<write_buffer;
-                offset = 0;
-            }else{
+                char write_buffer[bytes_written];
+                memcpy(write_buffer, buffer, bytes_written);
+                output_file << write_buffer;
+            } else {
                 offset = bytes_written;
             }
             if(CHECK_BIT(pkt_received.flags,6))

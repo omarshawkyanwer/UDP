@@ -19,6 +19,7 @@ void selective_repeat::send_data(std::map<uint32_t, tcp_packet> &pkts) {
      * the time at which it starts sending
      * */
     selective_repeat::sending_start_time_ = clock();
+
     int count = selective_repeat::window_size;
     auto it = selective_repeat::pkts_to_send.begin();
     int pak_len = 0;
