@@ -4,9 +4,10 @@
 #include <boost/thread.hpp>
 #include "tcp_socket.h"
 #include <thread>
+#include <mutex>
 
 using boost::asio::deadline_timer;
-
+std::mutex state_mutex;
 tcp_socket::tcp_socket(const udp::endpoint &listening_endpoint, const udp::endpoint &endpoint, udp::socket *socket,
                        transmission_protocol *protocol) :
         timer_(socket->get_io_service()),
@@ -33,6 +34,15 @@ void tcp_socket::listen() {
     if (tcp_socket::cur_state != INITIALIZED)
         return;
     tcp_socket::cur_state = LISTENING;
+}
+tcp_socket::connection_state tcp_socket::get_state() {
+
+    tcp_socket::connection_state  state;
+    state_mutex.lock();
+    state = cur_state;
+    state_mutex.unlock();
+    return state;
+
 }
 
 void tcp_socket::close() {
@@ -77,9 +87,12 @@ void tcp_socket::send(char bytes[], int len) {
         tcp_packet pkt = make_pkt();
         pkt.seq_no = seq_no;
         std::memcpy(pkt.data, bytes + seq_no, (size_t) CHUNK_SIZE);
+        if (seq_no + CHUNK_SIZE >= len) {
+            SET_BIT(pkt.flags, 6); /* Set Final packet flag */
+            pkt.data[len-seq_no-(seq_no+CHUNK_SIZE >len)] = 0;
+        }
         pkts_to_send[seq_no] = pkt;
-        if (seq_no + CHUNK_SIZE >= len)
-            SET_BIT(pkts_to_send[seq_no].flags, 6); /* Set Final packet flag */
+
 
         seq_no += CHUNK_SIZE;
     }
@@ -134,7 +147,9 @@ void tcp_socket::state_transition_callback(const boost::system::error_code &ec,
                                            std::size_t, enum connection_state next_state, long timeout_msec) {
     if (timeout_msec != -1  && next_state != CLOSED && next_state != CLOSING)
         tcp_socket::timer_.expires_from_now(boost::posix_time::milliseconds(timeout_msec));
+    state_mutex.lock();
     tcp_socket::cur_state = next_state;
+    state_mutex.unlock();
     if(next_state == CLOSED) {
         std::cout << "Connection closed" << std::endl;
         tcp_socket::timer_.cancel();
@@ -203,13 +218,24 @@ void tcp_socket::handle_on_established(tcp_packet &pkt, long timeout_msec) {
 }
 
 void tcp_socket::handle_on_terminate(tcp_packet &pkt,long timeout_msec) {
+    std::cout << "Closing"<<std::endl;
     connection_state  next = (tcp_socket::cur_state == CLOSING) ? CLOSED : CLOSING;
     tcp_packet pkt_send = tcp_socket::make_pkt();
     SET_BIT(pkt_send.flags, 4); /* Set ACK flag */
 
     if(tcp_socket::cur_state != CLOSING)
         SET_BIT(pkt_send.flags, 1); /* Set SYN flag */
+    if(tcp_socket::cur_state == CLOSING && !CHECK_BIT(pkt.flags,1) && CHECK_BIT(pkt.flags,4)) // Dont send just close
+    {
+        std::cout << "Connection Closed. " << std::endl;
 
+        state_mutex.lock();
+        tcp_socket::cur_state = CLOSED;
+        state_mutex.unlock();
+        tcp_socket::timer_.cancel();
+        return;
+
+    }
         tcp_socket::socket_->async_send_to(boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
                                        tcp_socket::endpoint_, tcp_socket::strand_.wrap(boost::bind(
                     &tcp_socket::state_transition_callback, this,

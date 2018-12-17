@@ -3,14 +3,14 @@
 //
 #include "additive_multiplicative.h"
 #include <iostream>
-int additive_multiplicative::new_ack(int curr_size) {
+uint32_t additive_multiplicative::new_ack(uint32_t curr_size) {
     return curr_size+CHUNK_SIZE;
 }
-int additive_multiplicative::time_out(int curr_size){
+uint32_t additive_multiplicative::time_out(uint32_t curr_size){
 
     return (curr_size > CHUNK_SIZE*2)?curr_size >>1 : CHUNK_SIZE;
 }
-int additive_multiplicative::duplicate_ack(int curr_size) {
+uint32_t additive_multiplicative::duplicate_ack(uint32_t curr_size) {
 
     return (curr_size > CHUNK_SIZE*2)?curr_size >>1 : CHUNK_SIZE;
 }

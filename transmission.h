@@ -29,7 +29,7 @@ public:
         eoc_ = false;
     }
     void send_ack(uint32_t ack_no) {
-        std::cout<<"acking "<<ack_no<<std::endl;
+        //std::cout<<"acking "<<ack_no<<std::endl;
         tcp_packet pkt_send = make_ack_pkt(ack_no);
         this->socket_->async_send_to(
                 boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
@@ -41,10 +41,13 @@ public:
         return eoc_;
     }
     size_t handle_received_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len) {
-        int random = rand()%100;
-        if(random <10)
+        if(eoc_)
             return 0;
+        int random = rand()%100;
+//        if(random <10)
+//            return 0;
         if (pkt.seq_no < recv_window_base) {
+           // std::cout<<"Oh Oh "<<std::endl;
             send_ack(pkt.seq_no);
             return 0;
         }
@@ -58,11 +61,13 @@ public:
         while (!recv_window.empty() && recv_window_base == recv_window.begin()->first) {
             tcp_packet recv_pkt = recv_window.begin()->second;
             /* Append to buffer */
-            uint32_t  data_len = std::strlen(recv_window.begin()->second.data);
-            if(offset + data_len > max_len)
-                break;
+            uint32_t data_len= std::strlen(recv_window.begin()->second.data);
+            data_len = (data_len > CHUNK_SIZE)?CHUNK_SIZE:data_len;
+
+            //if(offset + data_len > max_len)
+               // break;
             std::memcpy(buf + offset, recv_pkt.data, data_len);
-            //std::cout<<"writing in file "<<recv_pkt.seq_no<<std::endl;
+           // std::cout<<"writing in file "<<recv_pkt.seq_no<<std::endl;
             offset+=data_len;
             written += data_len;
             recv_window_base += data_len;
@@ -95,8 +100,8 @@ protected:
     boost::asio::ip::udp::socket *socket_;
     boost::asio::ip::udp::endpoint endpoint_;
 
-    long timeout_msec = 5000;
-    size_t window_size = 30;
+    long timeout_msec = TIMEOUT;
+    size_t window_size = 5*PACKET_LENGTH;
     size_t sent_size ;
     uint32_t next_seq_no = 0;
     std::map<uint32_t , tcp_packet>::iterator sender_window_base;
@@ -108,7 +113,7 @@ protected:
 
     uint32_t recv_window_base = 0;
     std::map<uint32_t, tcp_packet> recv_window;
-    const uint32_t RWND = 2500;
+    const uint32_t RWND = 500*CHUNK_SIZE;
     const uint32_t  max_buff = 10000;
     bool done = false;
 };

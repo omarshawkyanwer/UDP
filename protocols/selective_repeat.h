@@ -18,7 +18,7 @@ public:
     void send_callback(const boost::system::error_code &, uint32_t);
 
 protected:
-    int window_base = 0;
+    int window_base = 3*CHUNK_SIZE;
     congestion_control *controller;
     std::clock_t sending_start_time_,sending_end_time_;
     std::vector< std::pair< double ,int> > window_size_at_time_t;

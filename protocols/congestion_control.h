@@ -8,9 +8,9 @@
 #include "../types.h"
 class congestion_control {
 public:
-    virtual  int new_ack(int curr_size)=0;
-    virtual  int time_out(int curr_size)=0;
-    virtual int duplicate_ack(int curr_size)=0;
+    virtual  uint32_t new_ack(uint32_t curr_size)=0;
+    virtual  uint32_t time_out(uint32_t curr_size)=0;
+    virtual uint32_t duplicate_ack(uint32_t curr_size)=0;
 
 };
 #endif //UDP_CONGESTION_CONTROL_H

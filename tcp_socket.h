@@ -33,13 +33,13 @@ public:
     size_t received();
     void set_buffer(char *, uint32_t, uint32_t);
    // friend void client::handle_receiving_data(char *);
-   connection_state cur_state;
+   tcp_socket::connection_state get_state();
 
 private:
 
     void init();
     tcp_packet make_pkt();
-
+    tcp_socket::connection_state cur_state;
     /* State handlers */
     void state_transition_callback(const boost::system::error_code &,
             std::size_t, enum connection_state, long);

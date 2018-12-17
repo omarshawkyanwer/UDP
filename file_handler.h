@@ -6,17 +6,13 @@
 
 
 class file_handler {
-private:
-    void read_file(std::string file_name);
-    bool is_last_send(int len);
 public:
     file_handler(std::string file_name);
     int get_next_bytes(char* stream,int len);
 
 private :
-    int offset;
-    int total_len;
-    char* data;
+
+    std::ifstream file_reader_stream;
 };
 
 

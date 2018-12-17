@@ -12,8 +12,8 @@ public:
     additive_multiplicative(){
 
     }
-    int new_ack(int curr_size);
-    int time_out(int curr_size);
-    int duplicate_ack(int curr_size);
+    uint32_t new_ack(uint32_t curr_size);
+    uint32_t time_out(uint32_t curr_size);
+    uint32_t duplicate_ack(uint32_t curr_size);
 };
 #endif //UDP_ADDITIVE_MULTIPLICATIVE_H

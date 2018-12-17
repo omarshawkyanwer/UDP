@@ -26,7 +26,7 @@ public:
             server::socket_.receive(boost::asio::buffer(&pkt_recv, sizeof(pkt_recv)));
             //print_pkt(pkt_recv);
             handle_packet(pkt_recv);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+           // std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
@@ -49,12 +49,13 @@ private:
 
     void handle_client(tcp_socket *socket) {
         char data_chunk[FILE_CHUNK_SIZE + 1];
-        file_handler fh("../habalo.txt");
+        file_handler fh("../file_handler1.cpp");
         int read_bytes;
+int chunk=0;
         while (read_bytes = fh.get_next_bytes(data_chunk, FILE_CHUNK_SIZE)) {
             socket->send(data_chunk, read_bytes);
-            std::cout << "sending again " << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+            std::cout << "sending again " << ++chunk<<std::endl;
+           // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
 
         socket->close();
@@ -65,9 +66,9 @@ private:
     boost::asio::io_service io_service_;
     udp::socket socket_;
     std::map<std::string, tcp_socket *> open_sockets;
-    long timeout = 5000l;
+    long timeout = TIMEOUT;
 
-    const uint32_t FILE_CHUNK_SIZE = 500;
+    const uint32_t FILE_CHUNK_SIZE = 500*CHUNK_SIZE;
 };
 
 int main(int argc, char* argv[]) {

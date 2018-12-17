@@ -10,9 +10,9 @@
 class fixed_window_size_controller: public congestion_control {
 public:
     fixed_window_size_controller();
-    int new_ack(int curr_size);
-    int time_out(int curr_size);
-    int duplicate_ack(int curr_size);
+    uint32_t new_ack(uint32_t curr_size);
+    uint32_t time_out(uint32_t curr_size);
+    uint32_t duplicate_ack(uint32_t curr_size);
 };
 
 

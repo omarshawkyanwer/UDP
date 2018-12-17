@@ -6,12 +6,12 @@
 
 fixed_window_size_controller::fixed_window_size_controller(){}
 
-int fixed_window_size_controller::new_ack(int curr_size) {
+uint32_t fixed_window_size_controller::new_ack(uint32_t curr_size) {
     return 1;
 }
-int fixed_window_size_controller::time_out(int curr_size) {
+uint32_t fixed_window_size_controller::time_out(uint32_t curr_size) {
     return 1;
 }
-int fixed_window_size_controller::duplicate_ack(int curr_size) {
+uint32_t fixed_window_size_controller::duplicate_ack(uint32_t curr_size) {
     return 1;
 }

@@ -7,16 +7,16 @@
 
 #include "congestion_control.h"
 
-class slow_starter : congestion_control{
+class slow_starter : public congestion_control{
 public:
-    slow_starter(int threashold) {
+    slow_starter(uint32_t threashold) {
         ssthreshold = threashold;
     }
-    int new_ack(int curr_size);
-    int time_out(int curr_size);
-    int duplicate_ack(int curr_size);
+    uint32_t new_ack(uint32_t curr_size);
+    uint32_t time_out(uint32_t curr_size);
+    uint32_t duplicate_ack(uint32_t curr_size);
 
 private:
-    int ssthreshold;
+    uint32_t ssthreshold;
 };
 #endif //UDP_SLOW_STARTER_H

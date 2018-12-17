@@ -31,39 +31,34 @@ public:
         new_socket->set_buffer(buffer, offset, BUFF_SIZE);
 
         std::ofstream output_file(file_path);
+        int chunk=0;
         while (true) {
             tcp_packet pkt_received{};
-            if(new_socket->cur_state == tcp_socket::connection_state::CLOSED ||
-                    new_socket->cur_state == tcp_socket::connection_state::CLOSING
-                    )
+            if(new_socket->get_state() == tcp_socket::connection_state::CLOSED)
             {
                 break;
 
             }
                  socket_.receive(boost::asio::buffer(&pkt_received, sizeof(pkt_received)));
 
-            new_socket->handle_received(pkt_received, 5000l);
+            new_socket->handle_received(pkt_received, TIMEOUT);
             size_t bytes_written = new_socket->received();
 
             if (protocol->eoc()) {
-                offset += bytes_written;
-                char write_buffer[offset];
+                offset = bytes_written;
+                char write_buffer[offset+1];
                 memcpy( write_buffer, buffer, offset );
+                write_buffer[bytes_written]=0;
                 output_file<<write_buffer;
                 offset = 0;
 
                 new_socket->set_buffer(buffer, offset, BUFF_SIZE);
              //   std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 
-                std::cout<<"chunk recieved "<<bytes_written <<std::endl;
-
-            }else{
-                offset = bytes_written;
+                std::cout<<"chunk recieved "<<bytes_written <<" "<<chunk++<<std::endl;
 
             }
-
-            if(new_socket->cur_state == tcp_socket::connection_state::CLOSED ||
-                    new_socket->cur_state == tcp_socket::connection_state::CLOSING)
+            if(new_socket->get_state() == tcp_socket::connection_state::CLOSED)
                 break;
         }
         output_file.close();
@@ -76,7 +71,7 @@ private:
     udp::socket socket_;
     tcp_socket* new_socket;
 
-    const int BUFF_SIZE = 10 * 1024;
+    const int BUFF_SIZE = std::max(10 * 1024,500*CHUNK_SIZE+1);
 };
 
 int main(int argc, char* argv[])
