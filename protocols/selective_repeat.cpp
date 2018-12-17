@@ -57,7 +57,7 @@ void selective_repeat::send_data(std::map<uint32_t, tcp_packet> &pkts) {
 void selective_repeat::resend(uint32_t seq_no) {
     //std::cout<<"retransmitting "<<seq_no<<std::endl;
     tcp_packet pkt_send = selective_repeat::pkts_to_send[seq_no];
-    selective_repeat::sender_window[seq_no] = pkt_send;
+   // selective_repeat::sender_window[seq_no] = pkt_send;
 
     selective_repeat::socket_->async_send_to(
             boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
@@ -70,7 +70,6 @@ void selective_repeat::send_single(uint32_t seq_no) {
   // std::cout<<"sending "<<seq_no<<std::endl;
     tcp_packet pkt_send = selective_repeat::pkts_to_send[seq_no];
     selective_repeat::sender_window[seq_no] = pkt_send;
-
     selective_repeat::socket_->async_send_to(
             boost::asio::buffer(&pkt_send, sizeof(pkt_send)),
             selective_repeat::endpoint_, boost::bind(
@@ -104,7 +103,7 @@ void selective_repeat::send_callback(const boost::system::error_code &ec,
 
 void selective_repeat::handle_timeout(uint32_t seq_no) {
 
-    auto timer = selective_repeat::packet_timer_map[seq_no];
+    auto *timer = selective_repeat::packet_timer_map[seq_no];
     if (timer != NULL && timer->expires_at() <= boost::asio::deadline_timer::traits_type::now()) {
        // std::cout<<"timing out "<<seq_no <<std::endl;
           window_size = (size_t) controller->time_out(window_size);;
@@ -114,13 +113,16 @@ void selective_repeat::handle_timeout(uint32_t seq_no) {
 
 void selective_repeat::handle_received_ack(tcp_packet &pkt) {
     it_mutex.lock();
-    if(selective_repeat::sender_window.find(pkt.ack_no) == selective_repeat::sender_window.end())
+
+    if( selective_repeat::sender_window.find(pkt.ack_no) == selective_repeat::sender_window.end()) {
+      it_mutex.unlock();
         return;
+    }
     tcp_packet pkt_acked = selective_repeat::sender_window[pkt.ack_no];
-    selective_repeat::sender_window.erase(pkt_acked.seq_no);
+    selective_repeat::sender_window.erase(pkt.ack_no);
     //std::cout<<"acknowledging "<<pkt_acked.seq_no<<std::endl;
     /* Reset and delete timer */
-    auto timer = selective_repeat::packet_timer_map[pkt.ack_no];
+    auto *timer = selective_repeat::packet_timer_map[pkt.ack_no];
     selective_repeat::packet_timer_map.erase(pkt.ack_no);
     if(timer)
     {

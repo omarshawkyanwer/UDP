@@ -10,10 +10,11 @@
 #include <boost/asio/placeholders.hpp>`
 #include <set>
 #include "types.h"
-
+#include <mutex>
 using namespace boost::asio::ip;
 
 class transmission_protocol {
+    std::mutex eoc_mutex;
 public:
     explicit transmission_protocol(udp::socket *socket,
             const udp::endpoint &endpoint) {
@@ -26,7 +27,9 @@ public:
     void reset_recv(){
         transmission_protocol::recv_window_base = 0;
         transmission_protocol::recv_window.clear();
+        eoc_mutex.lock();
         eoc_ = false;
+        eoc_mutex.unlock();
     }
     void send_ack(uint32_t ack_no) {
         //std::cout<<"acking "<<ack_no<<std::endl;
@@ -38,10 +41,14 @@ public:
                         boost::asio::placeholders::error(), ack_no));
     }
     bool eoc() { //end of chunk
-        return eoc_;
+        bool fr;
+        eoc_mutex.lock();
+        fr = eoc_;
+        eoc_mutex.unlock();
+        return fr;
     }
     size_t handle_received_data(tcp_packet &pkt,char *buf,uint32_t offset,uint32_t max_len) {
-        if(eoc_)
+        if(eoc())
             return 0;
         int random = rand()%100;
 //        if(random <10)
@@ -55,7 +62,7 @@ public:
             return 0;
 
         recv_window[pkt.seq_no] = pkt;
-        send_ack(pkt.seq_no);
+
         size_t written = 0;
 
         while (!recv_window.empty() && recv_window_base == recv_window.begin()->first) {
@@ -72,9 +79,12 @@ public:
             written += data_len;
             recv_window_base += data_len;
             recv_window.erase(recv_window.begin());
+            eoc_mutex.lock();
             if(CHECK_BIT(recv_pkt.flags,6))
                 eoc_ = true;
+            eoc_mutex.unlock();
         }
+        send_ack(pkt.seq_no);
         return written;
     }
 protected:

@@ -71,7 +71,7 @@ private:
     udp::socket socket_;
     tcp_socket* new_socket;
 
-    const int BUFF_SIZE = std::max(10 * 1024,500*CHUNK_SIZE+1);
+    const int BUFF_SIZE = std::max((10 * 1024),500*CHUNK_SIZE+1);
 };
 
 int main(int argc, char* argv[])

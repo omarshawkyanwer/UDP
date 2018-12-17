@@ -55,7 +55,7 @@ int chunk=0;
         while (read_bytes = fh.get_next_bytes(data_chunk, FILE_CHUNK_SIZE)) {
             socket->send(data_chunk, read_bytes);
             std::cout << "sending again " << ++chunk<<std::endl;
-           // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
 
         socket->close();
